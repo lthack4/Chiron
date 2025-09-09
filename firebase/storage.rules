@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthed() { return request.auth != null; }
+
+    // evidence/{controlId}/{uid}/{filename}
+    match /evidence/{controlId}/{uid}/{fileName} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == uid
+        && request.resource.size < 20 * 1024 * 1024; // 20 MB cap
+    }
+  }
+}
+
