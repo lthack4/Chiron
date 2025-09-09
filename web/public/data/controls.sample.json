@@ -1,0 +1,38 @@
+[
+  {
+    "id": "AC.L2-3.1.1",
+    "code": "AC.L2-3.1.1",
+    "family": "Access Control",
+    "title": "Limit information system access to authorized users, processes acting on behalf of authorized users, and devices.",
+    "status": "not_implemented",
+    "objectives": [
+      { "id": "o1", "text": "Identify authorized users", "done": false },
+      { "id": "o2", "text": "Restrict access to authorized devices", "done": false }
+    ],
+    "comment": ""
+  },
+  {
+    "id": "AC.L2-3.1.2",
+    "code": "AC.L2-3.1.2",
+    "family": "Access Control",
+    "title": "Limit information system access to the types of transactions and functions that authorized users are permitted to execute.",
+    "status": "not_implemented",
+    "objectives": [
+      { "id": "o1", "text": "Define user roles and permissions", "done": false },
+      { "id": "o2", "text": "Enforce least privilege", "done": false }
+    ],
+    "comment": ""
+  },
+  {
+    "id": "IA.L2-3.5.1",
+    "code": "IA.L2-3.5.1",
+    "family": "Identification and Authentication",
+    "title": "Identify information system users, processes acting on behalf of users, or devices.",
+    
+    "objectives": [
+      { "id": "o1", "text": "Unique user identification", "done": false },
+      { "id": "o2", "text": "Service account identification", "done": false }
+    ],
+    "comment": ""
+  }
+]
