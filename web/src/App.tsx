@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Poams from './pages/Poams'
 import Policies from './pages/Policies'
 import Settings from './pages/Settings'
+import SprScore from './pages/SprScore'
 
 function App() {
   const [searchParams] = useSearchParams()
@@ -82,6 +83,7 @@ function App() {
             <strong style={{ marginBottom: 4 }}>Menu</strong>
             <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
             <Link to="/controls" onClick={() => setMenuOpen(false)}>Controls</Link>
+            <Link to="/spr" onClick={() => setMenuOpen(false)}>SPR Score</Link>
             <Link to="/poams" onClick={() => setMenuOpen(false)}>POAMs</Link>
             <Link to="/policies" onClick={() => setMenuOpen(false)}>Policies</Link>
             <Link to="/settings" onClick={() => setMenuOpen(false)}>Settings</Link>
@@ -93,6 +95,7 @@ function App() {
         <Route path="/" element={<Home controls={controls} />} />
         <Route path="/controls" element={<ControlsList controls={filtered} />} />
         <Route path="/controls/:id" element={<ControlDetail allControls={controls} onUpdateLocal={setControls} />} />
+        <Route path="/spr" element={<SprScore controls={controls} />} />
         <Route path="/poams" element={<Poams />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/settings" element={<Settings />} />

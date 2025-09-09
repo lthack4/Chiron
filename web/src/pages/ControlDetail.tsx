@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import type { Control, Objective, Status } from '../types'
+import { controlContribution, controlWeight } from '../scoring'
 
 export default function ControlDetail({ allControls, onUpdateLocal }: { allControls: Control[], onUpdateLocal: (c: Control[]) => void }) {
   const { id } = useParams()
@@ -42,6 +43,7 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
       {local.description && (
         <p style={{ color: '#444', marginTop: 4 }}>{local.description}</p>
       )}
+      <ScoreLine allControls={allControls} control={local} />
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <span>Status:</span>
         <select value={local.status ?? ''} onChange={e => setStatus((e.target.value || undefined) as any)}>
@@ -81,6 +83,19 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
           style={{ width: '100%' }}
         />
       </section>
+    </div>
+  )
+}
+
+function ScoreLine({ allControls, control }: { allControls: Control[], control: Control }) {
+  const w = controlWeight(allControls, control)
+  const contrib = controlContribution(control, w)
+  const color = contrib > 0 ? '#2e7d32' : contrib < 0 ? '#c62828' : '#9e9e9e'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#555' }}>
+      <span>Weighted score:</span>
+      <span style={{ fontWeight: 600, color }}>{contrib.toFixed(1)}</span>
+      <span style={{ fontSize: 12, color: '#777' }}>(weight {w}, Fully=+w, Partial=+w×0.5, Not/Unanswered=−w)</span>
     </div>
   )
 }
