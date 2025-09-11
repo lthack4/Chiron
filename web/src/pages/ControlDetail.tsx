@@ -16,22 +16,28 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
   )
 
   function setStatus(status: Status | undefined) {
-    const next = { ...local, status }
-    setLocal(next)
-    onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    if (local) {
+      const next: Control = { ...local, status }
+      setLocal(next)
+      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    }
   }
 
   function toggleObjective(obj: Objective) {
-    const nextObjs = local.objectives.map(o => o.id === obj.id ? { ...o, done: !o.done } : o)
-    const next = { ...local, objectives: nextObjs }
-    setLocal(next)
-    onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    if (local){
+      const nextObjs = (local?.objectives ?? []).map(o => o.id === obj.id ? { ...o, done: !o.done } : o)
+      const next: Control = { ...local, objectives: nextObjs }
+      setLocal(next)
+      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    }
   }
 
   function updateComment(v: string) {
-    const next = { ...local, comment: v }
-    setLocal(next)
-    onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    if (local){
+      const next: Control = { ...local, comment: v }
+      setLocal(next)
+      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
+    }
   }
 
   return (
