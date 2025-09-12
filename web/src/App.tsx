@@ -8,6 +8,12 @@ import Poams from './pages/Poams'
 import Policies from './pages/Policies'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
+import Login from './pages/Login'
+import { initializeApp } from 'firebase/app'
+import { firebaseConfig } from './firebase'
+
+
+initializeApp(firebaseConfig);
 
 function App() {
   const [searchParams] = useSearchParams()
@@ -92,6 +98,17 @@ function App() {
       )}
 
       <Routes>
+        
+        {/* <Route path="/" element={<AuthRoute><Home controls={controls} /></AuthRoute>} />
+        <Route path="/controls" element={<AuthRoute><ControlsList controls={filtered} /></AuthRoute>} />
+        <Route path="/controls/:id" element={<AuthRoute><ControlDetail allControls={controls} onUpdateLocal={setControls} /></AuthRoute>} />
+        <Route path="/spr" element={<AuthRoute><SprScore controls={controls} /></AuthRoute>} />
+        <Route path="/poams" element={<AuthRoute><Poams /></AuthRoute>} />
+        <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
+        <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
+        <Route path="/login" element={<Login />} /> */}
+      
+      {/* without auth use in development in the mean time */}
         <Route path="/" element={<Home controls={controls} />} />
         <Route path="/controls" element={<ControlsList controls={filtered} />} />
         <Route path="/controls/:id" element={<ControlDetail allControls={controls} onUpdateLocal={setControls} />} />
@@ -99,6 +116,7 @@ function App() {
         <Route path="/poams" element={<Poams />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </div>
   )
