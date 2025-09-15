@@ -1,14 +1,21 @@
 import React, { useState } from 'react'
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+// import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { signInWithPopup } from 'firebase/auth'
+import { auth, provider } from '../firebase'
 import GoogleButton from 'react-google-button'
 import { useNavigate } from 'react-router-dom';
 
-export interface ILoginProps {}
+//might be useful to handle login execution states
+export interface ILoginProps {
+    onLoginSuccess?: () => void;
+    errorMessage?: string;
+}
 
 const LoginPage: React.FunctionComponent<ILoginProps> = (props) => {
     
-    const auth = getAuth();
-    const provider = new GoogleAuthProvider();
+    // const auth = getAuth();
+    
+    // const provider = new GoogleAuthProvider();
     const navigate = useNavigate();
     const [authing, setAuthing]= useState(false);
     
