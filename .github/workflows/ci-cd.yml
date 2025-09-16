@@ -26,9 +26,11 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+      - name: Navigate to web directory
+        run: cd web
       # Install dependencies
       - name: Install dependencies
-        run: npm ./web/install
+        run: npm install
       # Run tests
       - name: Run tests
         run: npm test
