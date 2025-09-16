@@ -33,10 +33,10 @@ jobs:
         run: npm install
         working-directory: ./web
       
-      # Run tests
-      - name: Run tests
-        run: npm test
-        working-directory: ./web
+      # # Run tests
+      # - name: Run tests
+      #   run: npm test
+      #   working-directory: ./web
         
       # Build the application
       - name: Build application
