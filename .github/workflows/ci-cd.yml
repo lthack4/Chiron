@@ -19,10 +19,15 @@ jobs:
       # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      # Navigate to the web directory
+      - name: Change to web directory
+        run: cd web
 
       # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
+        
         with:
           node-version: '18'
           cache: 'npm'
@@ -30,16 +35,16 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: npm install
-        working-directory: ./web
+      
       # Run tests
       - name: Run tests
         run: npm test
-        working-directory: ./web
+        
       # Build the application
       - name: Build application
         run: npm run build
-        working-directory: ./web
         
+
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
