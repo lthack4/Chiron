@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import type { Control, Status } from './types'
 import ControlsList from './pages/ControlsList'
@@ -8,11 +8,19 @@ import Poams from './pages/Poams'
 import Policies from './pages/Policies'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
+import Login from './pages/Login'
+import { initializeApp } from 'firebase/app'
+import { firebaseConfig } from './firebase'
+import AuthRoute, {logout} from './context/AuthRoute'
+
+
+initializeApp(firebaseConfig);
 
 function App() {
   const [searchParams] = useSearchParams()
   const [controls, setControls] = useState<Control[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -62,36 +70,72 @@ function App() {
     return controls.filter(c => c.status === statusFilter)
   }, [controls, statusFilter])
 
+  // utils 
+  function disableMenus(){
+    setMenuOpen(false)
+    setAccountMenuOpen(false)
+  }
+
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 16 }}>
       <header style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        <button aria-label="menu" onClick={() => setMenuOpen(true)} style={{ background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer' }}>
-          ☰
-        </button>
+        {location.pathname !== '/login' &&(
+          <button aria-label="menu" onClick={() => setMenuOpen(true)} style={{ background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer' }}>
+            ☰
+          </button>
+        )}
         <h1 style={{ margin: 0 }}>Chiron</h1>
         {location.pathname === '/controls' && (
           <div style={{ marginLeft: 'auto' }}>
             <StatusFilters onSelect={(s) => navigate(s ? `/controls?status=${s}` : '/controls') } selected={statusFilter} />
           </div>
         )}
+        {/* Account menu */}
+        {location.pathname !== '/login' &&(
+          <button onClick={() => setAccountMenuOpen(true)} style={{ marginLeft: 'auto', background: 'transparent', border: 'ridge', fontSize: 24, cursor: 'pointer' }}>
+            Account
+          </button>
+        )}
+
+        {accountMenuOpen && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={() => disableMenus()}>
+            <aside onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: 40, right: 0, width: 200, background: '#fff', boxShadow: '-2px 0 8px rgba(0,0,0,0.15)', padding: 12, display: 'grid', gap: 6 }}>
+              <strong style={{ marginBottom: 4 }}>Account</strong>  
+              {/* <p>{user?.email}</p>    // TODO: This still needs to be fetched */}
+              <Link to="/settings" onClick={() => disableMenus()}>Settings</Link>
+              <Link to="/logout" onClick={() => logout()}>Logout</Link>
+            </aside>
+          </div>
+        )}
+
       </header>
 
       {/* Side menu */}
       {menuOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={() => setMenuOpen(false)}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={() => disableMenus()}>
           <aside onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: 0, left: 0, width: 260, height: '100%', background: '#fff', boxShadow: '2px 0 8px rgba(0,0,0,0.15)', padding: 12, display: 'grid', gap: 6 }}>
             <strong style={{ marginBottom: 4 }}>Menu</strong>
-            <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link to="/controls" onClick={() => setMenuOpen(false)}>Controls</Link>
-            <Link to="/spr" onClick={() => setMenuOpen(false)}>SPR Score</Link>
-            <Link to="/poams" onClick={() => setMenuOpen(false)}>POAMs</Link>
-            <Link to="/policies" onClick={() => setMenuOpen(false)}>Policies</Link>
-            <Link to="/settings" onClick={() => setMenuOpen(false)}>Settings</Link>
+            <Link to="/" onClick={() => disableMenus()}>Home</Link>
+            <Link to="/controls" onClick={() => disableMenus()}>Controls</Link>
+            <Link to="/spr" onClick={() => disableMenus()}>SPR Score</Link>
+            <Link to="/poams" onClick={() => disableMenus()}>POAMs</Link>
+            <Link to="/policies" onClick={() => disableMenus()}>Policies</Link>
+            <Link to="/settings" onClick={() => disableMenus()}>Settings</Link>
           </aside>
         </div>
       )}
 
-      <Routes>
+      <Routes>        
+        <Route path="/" element={<AuthRoute><Home controls={controls} /></AuthRoute>} />
+        <Route path="/controls" element={<AuthRoute><ControlsList controls={filtered} /></AuthRoute>} />
+        <Route path="/controls/:id" element={<AuthRoute><ControlDetail allControls={controls} onUpdateLocal={setControls} /></AuthRoute>} />
+        <Route path="/spr" element={<AuthRoute><SprScore controls={controls} /></AuthRoute>} />
+        <Route path="/poams" element={<AuthRoute><Poams /></AuthRoute>} />
+        <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
+        <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
+        <Route path="/login" element={<Login/>} />
+        
+        {/*       
         <Route path="/" element={<Home controls={controls} />} />
         <Route path="/controls" element={<ControlsList controls={filtered} />} />
         <Route path="/controls/:id" element={<ControlDetail allControls={controls} onUpdateLocal={setControls} />} />
@@ -99,6 +143,8 @@ function App() {
         <Route path="/poams" element={<Poams />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/login" element={<Login />} /> */}
+
       </Routes>
     </div>
   )
@@ -114,5 +160,7 @@ function StatusFilters({ selected, onSelect }: { selected: (Status | 'unanswered
     </select>
   )
 }
+
+
 
 export default App
