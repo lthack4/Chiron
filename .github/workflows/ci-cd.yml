@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - Dev
+      - Add-CICD
   pull_request:
     branches:
       - Dev
