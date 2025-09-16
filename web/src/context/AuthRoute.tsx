@@ -1,4 +1,4 @@
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 // import { getAuth } from 'firebase/auth';
 import { auth } from '../firebase';
 import React, { useEffect, useState } from 'react'
@@ -10,10 +10,20 @@ export interface IAuthRouteProps {
 }
 
 const AuthRoute: React.FC<IAuthRouteProps> = (props) => {
-    
     const { children } = props;
+    
+    const user = useAuthState();
+
+    if (!user) {
+        return <p>loading...</p>;
+    }
+    
+    return <>{children}</>
+}
+
+function useAuthState() {
+    
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
@@ -30,15 +40,12 @@ const AuthRoute: React.FC<IAuthRouteProps> = (props) => {
         return unsubscribe;
     }, [auth]);
 
-    if (loading) {
-        return <p>loading...</p>;
-    }
-
-    return <>{children}</>
+    return user;
 }
+
+
 export function logout() {
     auth.signOut().then(() => {
-        console.log('User signed out');
         window.location.href = '/login';
     }).catch((error) => {
         console.error('Error signing out:', error);
@@ -46,9 +53,6 @@ export function logout() {
 };
 export function getCurrentUserID() {
     return auth.currentUser?.uid;
-}
-export function userIsLoggedIn() {
-    return auth.currentUser !== null? true : false;
 }
 
 export default AuthRoute;

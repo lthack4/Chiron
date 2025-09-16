@@ -11,7 +11,7 @@ import SprScore from './pages/SprScore'
 import Login from './pages/Login'
 import { initializeApp } from 'firebase/app'
 import { firebaseConfig } from './firebase'
-import AuthRoute, {logout, userIsLoggedIn} from './context/AuthRoute'
+import AuthRoute, {logout} from './context/AuthRoute'
 
 
 initializeApp(firebaseConfig);
@@ -79,7 +79,7 @@ function App() {
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 16 }}>
       <header style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        {userIsLoggedIn() &&(
+        {location.pathname !== '/login' &&(
           <button aria-label="menu" onClick={() => setMenuOpen(true)} style={{ background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer' }}>
             ☰
           </button>
@@ -91,7 +91,7 @@ function App() {
           </div>
         )}
         {/* Account menu */}
-        {userIsLoggedIn() &&(
+        {location.pathname !== '/login' &&(
           <button onClick={() => setAccountMenuOpen(true)} style={{ marginLeft: 'auto', background: 'transparent', border: 'ridge', fontSize: 24, cursor: 'pointer' }}>
             Account
           </button>
