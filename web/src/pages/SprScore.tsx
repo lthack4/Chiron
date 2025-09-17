@@ -6,92 +6,93 @@ export default function SprScore({ controls }: { controls: Control[] }) {
   const pct = model.max > 0 ? Math.round((model.total / model.max) * 100) : 0
 
   return (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <h2>SPR Score (Weighted, Prototype)</h2>
-      <p style={{ color: '#555' }}>
-        Weighted scoring using magnitudes 5/3/1 per practice. Rule: within each family, the first two practices are worth 5,
-        the next two are worth 3, the rest are worth 1. Status contributes: Fully = +weight, Partially = +weight×0.5, Not/Unanswered = −weight.
-        Replace this with the official DoD SPR(S) weights when available.
-      </p>
-
-      <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-        <ScoreBadge score={model.total} max={model.max} min={-model.max} pct={pct} />
-        <ul style={{ margin: 0 }}>
-          <li>Total controls: {model.totalControls}</li>
-          <li>Weighted max: {model.max}</li>
-          <li>Weighted min: {-model.max}</li>
-          <li>Positives: {model.positives.toFixed(1)} | Negatives: {model.negatives.toFixed(1)}</li>
-        </ul>
+    <>
+      <div className="toolbar">
+        <h1 style={{marginRight:'auto'}}>SPR Score (Weighted, Prototype)</h1>
       </div>
 
-      <section>
-        <h3>By Family (Weighted)</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
-          {Object.entries(model.byFamily).map(([fam, t]) => (
-            <div key={fam} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <strong style={{ width: 40 }}>{fam}</strong>
-              <ProgressBarWeighted pos={t.positive} neg={t.negative} max={t.max} />
-              <span style={{ color: '#666' }}>{t.positive.toFixed(1)} / {t.max.toFixed(1)}</span>
-            </div>
-          ))}
+      <div
+        style={{
+          display: 'grid',
+          gap: '1.5rem',
+          gridTemplateColumns: 'minmax(280px, 420px) 1fr',
+        }}
+      >
+        <div className="card card--padded">
+          <ScoreBadge score={model.total} max={model.max} min={-model.max} pct={pct} />
+          <ul style={{ marginTop: '1rem', color: 'var(--muted)' }}>
+            <li>Total controls: {model.totalControls}</li>
+            <li>Weighted max: {model.max}</li>
+            <li>Weighted min: {-model.max}</li>
+            <li>
+              Positives: {model.positives.toFixed(1)} | Negatives: {model.negatives.toFixed(1)}
+            </li>
+          </ul>
         </div>
-      </section>
+
+        <div className="card card--padded">
+          <h3 style={{ marginBottom: '.75rem' }}>By Family (Weighted)</h3>
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {model.byFamily.map((fam) => (
+              <Bar key={fam.family} label={fam.family} value={fam.score} max={fam.max} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ScoreBadge({ score, pct }: { score: number; pct: number }) {
+  return (
+    <div style={{ fontSize: '2.2rem', fontWeight: 700, color: score >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+      {score.toFixed(1)} <span style={{ fontSize: '1rem', color: 'var(--muted)' }}>({pct}%)</span>
     </div>
   )
 }
 
-type FamAgg = { max: number, positive: number, negative: number }
+function Bar({ label, value, max }: { label: string; value: number; max: number }) {
+  const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0
+  const barColor = value >= 0 ? 'var(--success)' : 'var(--danger)'
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <strong>{label}</strong>
+        <span style={{ color: 'var(--muted)' }}>{value.toFixed(1)} / {max.toFixed(1)}</span>
+      </div>
+      <div style={{ height: 10, background: 'rgba(140,149,161,.25)', borderRadius: 999 }}>
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: barColor }} />
+      </div>
+    </div>
+  )
+}
 
 function buildWeightedModel(controls: Control[]) {
-  // Build ordering within each family to assign default weights: idx 0-1:5, idx 2-3:3, rest:1
-  const famBuckets: Record<string, Control[]> = {}
-  for (const c of controls) (famBuckets[c.family] ||= []).push(c)
-  for (const f of Object.keys(famBuckets)) famBuckets[f].sort((a,b)=>parseCodeRank(a.code)-parseCodeRank(b.code))
-
-  const weightMap = buildWeightMap(controls)
-
+  const weightMap = buildWeightMap(controls.map((c) => parseCodeRank(c.code)))
   let total = 0
   let positives = 0
   let negatives = 0
-  let max = 0
-  const byFamily: Record<string, FamAgg> = {}
+  const byFamily: { family: string; score: number; max: number }[] = []
 
-  for (const c of controls) {
-    const w = weightMap.get(c.code) ?? 1
-    max += w
-    const contrib = controlContribution(c, w)
-
-    total += contrib
-    if (contrib >= 0) positives += contrib
-    else negatives += contrib
-
-    const fam = c.family
-    if (!byFamily[fam]) byFamily[fam] = { max: 0, positive: 0, negative: 0 }
-    byFamily[fam].max += w
-    if (contrib >= 0) byFamily[fam].positive += contrib
-    else byFamily[fam].negative += contrib
+  for (const family of Object.keys(weightMap)) {
+    let famScore = 0
+    let famMax = 0
+    for (const c of controls.filter((c) => c.code.startsWith(family))) {
+      const weight = weightMap[family][c.code] ?? 1
+      famMax += weight
+      const contrib = controlContribution(c.status, weight)
+      famScore += contrib
+      total += contrib
+      if (contrib > 0) positives += contrib
+      if (contrib < 0) negatives += contrib
+    }
+    byFamily.push({ family, score: famScore, max: famMax })
   }
 
-  return { totalControls: controls.length, total, positives, negatives, max, byFamily }
-}
-
-function ScoreBadge({ score, max, min, pct }: { score: number, max: number, min: number, pct: number }) {
-  return (
-    <div style={{ border: '1px solid #ddd', borderRadius: 12, padding: '12px 16px', minWidth: 220 }}>
-      <div style={{ fontSize: 12, color: '#666' }}>Weighted Score</div>
-      <div style={{ fontSize: 28, fontWeight: 700 }}>{score.toFixed(1)} (range {min}…{max})</div>
-      <div style={{ color: '#555' }}>{pct}% of max</div>
-    </div>
+  const max = Object.values(weightMap).reduce(
+    (acc, fam) => acc + Object.values(fam).reduce((a, w) => a + w, 0),
+    0,
   )
-}
 
-function ProgressBarWeighted({ pos, neg, max }: { pos: number, neg: number, max: number }) {
-  const posPct = max ? Math.min(100, Math.max(0, (pos / max) * 100)) : 0
-  const negPct = max ? Math.min(100, Math.max(0, (-neg / max) * 100)) : 0
-  return (
-    <div style={{ height: 10, width: 260, background: '#eee', borderRadius: 6, overflow: 'hidden', display: 'flex' }}>
-      <div style={{ width: `${posPct}%`, background: '#2e7d32' }} />
-      <div style={{ width: `${negPct}%`, background: '#c62828' }} />
-    </div>
-  )
+  return { total, positives, negatives, max, totalControls: controls.length, byFamily }
 }
