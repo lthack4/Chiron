@@ -5,17 +5,17 @@ export default function Settings() {
       <p>Manage your account settings below:</p>
       <ul style={{ listStyleType: "none", padding: 0 }}>
         <li>
-          <button onClick={() => alert("Change password clicked")}>
+          <button className="w-full text-left px-3 py-2 rounded-md hover:bg-neutral-800">
             Change Password
           </button>
         </li>
         <li>
-          <button onClick={() => alert("Enable MFA clicked")}>
+          <button className="w-full text-left px-3 py-2 rounded-md hover:bg-neutral-800">
             Enable MFA
           </button>
         </li>
         <li>
-          <button onClick={() => alert("Basic account info clicked")}>
+          <button className="w-full text-left px-3 py-2 rounded-md hover:bg-neutral-800">
             Basic Account Info
           </button>
         </li>
