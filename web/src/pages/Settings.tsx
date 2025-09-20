@@ -9,12 +9,13 @@ import {
   Save,
 } from "lucide-react";
 
-type SettingsSection = "user" | "password" | "mfa" | "support";
+type SettingsSection = "User" | "password" | "mfa" | "support";
 
 export default function Settings(){
 
   const [activeSection, setActiveSection] = useState<SettingsSection>('User');
-  const [showCurrentPassword, setshowCurrentPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [mfaEnabled, setMfaEnabled] = useState(false);
 
   const navigationItems = [
@@ -110,8 +111,8 @@ const renderMfaSettings = () => (
       <div className="bg-neutral-800 rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-white font-medium">Enable MFA</p>
-            <p className="text-sm text-neutral-400">Add an extra layer of security to your account</p>
+            <p className="text-white font-medium">Enable MFA:</p>
+            <p className="text-sm text-neutral-400">Add an extra layer of security to your account.</p>
           </div>
           <button
             onClick={() => setMfaEnabled(!mfaEnabled)}
@@ -129,7 +130,7 @@ const renderMfaSettings = () => (
         {mfaEnabled && (
           <div className="mt-4 p-4 bg-green-900/20 border border-green-700 rounded-lg">
             <p className="text-green-400 text-sm">
-              MFA is enabled. Use your authenticator app to generate codes when logging in.
+              MFA is enabled!
             </p>
           </div>
         )}
@@ -153,7 +154,7 @@ const renderMfaSettings = () => (
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'user':
+      case 'User':
         return renderUserSettings();
       case 'password':
         return renderPasswordSettings();
@@ -191,8 +192,13 @@ const renderMfaSettings = () => (
           })}
         </nav>
       </aside>
+      <main className="flex-1 p-8">
+        <div className="max-w-2xl">
+          {renderContent()}
+        </div>
+      </main>
     </div>
-  )
+  );
 }
 
 
@@ -227,5 +233,5 @@ const renderMfaSettings = () => (
         //</ul>
       //</aside>
     //</div>
-};
+//};
 
