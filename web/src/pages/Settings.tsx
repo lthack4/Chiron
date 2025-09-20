@@ -18,6 +18,7 @@ export default function Settings(){
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [mfaEnabled, setMfaEnabled] = useState(false);
 
+  //side bar navigation 
   const navigationItems = [
     { id: 'user', label: 'Account', icon: User },
     { id: 'password', label: 'Change Password', icon: Lock },
@@ -25,6 +26,7 @@ export default function Settings(){
     { id: 'support', label: 'Support', icon: HelpCircle },
   ];
 
+  //function for account
   const renderUserSettings = () => (
      <div className="space-y-6">
       <h3 className="text-xl font-semibold text-white mb-4">Account Information</h3>
@@ -59,6 +61,7 @@ export default function Settings(){
     </div>
   );
 
+  //function for password
   const renderPasswordSettings = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-white mb-4">Change Password</h3>
@@ -105,7 +108,8 @@ export default function Settings(){
     </div>
   );
 
-const renderMfaSettings = () => (
+  //function for multi-factor authentication
+  const renderMfaSettings = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-white mb-4">Multi-Factor Authentication</h3>
       <div className="bg-neutral-800 rounded-lg p-6 space-y-4">
@@ -138,6 +142,7 @@ const renderMfaSettings = () => (
     </div>
   );
 
+  //Support settings
   const renderSupportSettings = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-white mb-4">Support</h3>
@@ -152,6 +157,7 @@ const renderMfaSettings = () => (
     </div>
   );
 
+  //display of each section
   const renderContent = () => {
     switch (activeSection) {
       case 'User':
