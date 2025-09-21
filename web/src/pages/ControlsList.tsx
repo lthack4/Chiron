@@ -3,29 +3,65 @@ import type { Control } from '../types'
 
 export default function ControlsList({ controls }: { controls: Control[] }) {
   return (
-    <div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <>
+      <div className="toolbar">
+        <h1 style={{ marginRight: 'auto' }}>Controls</h1>
+        <button className="chip">All families</button>
+        <button className="chip">Compliance</button>
+        <button className="chip">Type</button>
+        <button className="btn" style={{ marginLeft: 'auto' }}>Reset filters</button>
+      </div>
+
+      <div className="table">
+        <div className="table__head">
+          <div>Title</div>
+          <div>Timestamp</div>
+          <div>Category</div>
+          <div>Compliance</div>
+          <div></div>
+        </div>
+
         {controls.map((c) => (
-          <li key={c.id} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12, marginBottom: 8 }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, minWidth: 160 }}>{c.code}</span>
-              <span style={{ flex: 1 }}>{c.title}</span>
-              <StatusBadge status={c.status} />
-              <Link to={`/controls/${encodeURIComponent(c.id)}`}>Open</Link>
+          <div className="table__row" key={c.id}>
+            <div>
+              <div className="table__cell--title">{c.code} — {c.title}</div>
+              <div className="table__cell--sub">{c.description ?? '—'}</div>
             </div>
-          </li>
+
+            <div className="table__cell--sub">—</div>
+            <div className="table__cell--sub">{c.family ?? '—'}</div>
+            <div><StatusBadge status={c.status} /></div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Link to={`/controls/${encodeURIComponent(c.id)}`} className="btn">›</Link>
+            </div>
+          </div>
         ))}
-      </ul>
-    </div>
+      </div>
+    </>
   )
 }
 
 function StatusBadge({ status }: { status: Control['status'] }) {
-  const label = status ?? 'unanswered'
-  const color = !status ? '#9e9e9e' : status === 'fully_implemented' ? '#2e7d32' : status === 'partially_implemented' ? '#f9a825' : '#c62828'
-  return (
-    <span style={{ padding: '2px 8px', borderRadius: 12, background: color, color: 'white', fontSize: 12 }}>
-      {label}
-    </span>
-  )
+  const label = !status
+    ? 'unanswered'
+    : status === 'fully_implemented'
+    ? 'fully implemented'
+    : status === 'partially_implemented'
+    ? 'partially implemented'
+    : status === 'not_implemented'
+    ? 'not implemented'
+    : 'unanswered'
+
+  const cls = !status
+    ? 'badge--muted'
+    : status === 'fully_implemented'
+    ? 'badge--ok'
+    : status === 'partially_implemented'
+    ? 'badge--warn'
+    : status === 'not_implemented'
+    ? 'badge--bad'
+    : 'badge--muted'
+
+  return <span className={`badge ${cls}`}>{label}</span>
 }

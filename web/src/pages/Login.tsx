@@ -1,25 +1,26 @@
 import React, { useState } from 'react'
-// import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { signInWithPopup } from 'firebase/auth'
-import { auth, provider } from '../firebase'
+import { auth, isFirebaseConfigured, provider } from '../firebase'
 import GoogleButton from 'react-google-button'
 import { useNavigate } from 'react-router-dom';
 
-//might be useful to handle login execution states
 export interface ILoginProps {
     onLoginSuccess?: () => void;
     errorMessage?: string;
 }
 
-const LoginPage: React.FunctionComponent<ILoginProps> = (props) => {
-    
-    // const auth = getAuth();
-    
-    // const provider = new GoogleAuthProvider();
+const LoginPage: React.FunctionComponent<ILoginProps> = () => {
     const navigate = useNavigate();
     const [authing, setAuthing]= useState(false);
+
+    const firebaseReady = Boolean(isFirebaseConfigured && auth && provider)
     
     const signInWithGoogle = async () => {
+        if (!firebaseReady || !auth || !provider) {
+            navigate('/');
+            return;
+        }
+
         setAuthing(true);
 
         signInWithPopup(auth, provider)
@@ -36,8 +37,13 @@ const LoginPage: React.FunctionComponent<ILoginProps> = (props) => {
     return (
         <div>
             <h2>Login Page</h2>
+            {!firebaseReady && (
+                <p style={{ color: '#b00' }}>
+                    Firebase is not configured. Continuing in offline mode.
+                </p>
+            )}
             <div>
-                <GoogleButton onClick={() => signInWithGoogle()} disabled= {authing}/>
+                <GoogleButton onClick={() => signInWithGoogle()} disabled={firebaseReady ? authing : false}/>
             </div>
         </div>
     )
