@@ -1,107 +1,170 @@
-import { useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import type { Control, Objective, Status } from '../types'
 import { controlContribution, controlWeight } from '../scoring'
 
-export default function ControlDetail({ allControls, onUpdateLocal }: { allControls: Control[], onUpdateLocal: (c: Control[]) => void }) {
-  const { id } = useParams()
-  const control = useMemo(() => allControls.find(c => c.id === id), [allControls, id])
-  const [local, setLocal] = useState<Control | null>(control ?? null)
+export default function ControlDetail({ allControls, onUpdateLocal }: { allControls: Control[]; onUpdateLocal: (controls: Control[]) => void }) {
+  const { id: raw } = useParams()
+  const id = useMemo(() => (raw ? decodeURIComponent(raw) : ''), [raw])
+  const navigate = useNavigate()
 
-  if (!local) return (
-    <div>
-      <p>Control not found.</p>
-      <Link to="/">Back</Link>
-    </div>
+  const sourceControl = useMemo(
+    () => allControls.find(control => control.id === id) ?? null,
+    [allControls, id],
   )
+  const [local, setLocal] = useState<Control | null>(sourceControl)
+
+  useEffect(() => {
+    setLocal(sourceControl)
+  }, [sourceControl])
+
+  if (!local) {
+    return (
+      <>
+        <div className="toolbar">
+          <button className="btn" onClick={() => navigate(-1)}>{'<' } Back</button>
+          <h1 style={{ marginLeft: 12 }}>Control</h1>
+        </div>
+        <div className="card card--padded">
+          <p>We could not find that control.</p>
+          <p style={{ color: 'var(--muted)' }}>ID tried: <code>{id}</code></p>
+        </div>
+      </>
+    )
+  }
 
   function setStatus(status: Status | undefined) {
-    if (local) {
-      const next: Control = { ...local, status }
-      setLocal(next)
-      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
-    }
+    if (!local) return
+    const next: Control = { ...local, status }
+    setLocal(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
-  function toggleObjective(obj: Objective) {
-    if (local){
-      const nextObjs = (local?.objectives ?? []).map(o => o.id === obj.id ? { ...o, done: !o.done } : o)
-      const next: Control = { ...local, objectives: nextObjs }
-      setLocal(next)
-      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
-    }
+  function toggleObjective(objective: Objective) {
+    if (!local) return
+    const nextObjectives = (local.objectives ?? []).map(obj => (obj.id === objective.id ? { ...obj, done: !obj.done } : obj))
+    const next: Control = { ...local, objectives: nextObjectives }
+    setLocal(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
-  function updateComment(v: string) {
-    if (local){
-      const next: Control = { ...local, comment: v }
-      setLocal(next)
-      onUpdateLocal(allControls.map(c => c.id === next.id ? next : c))
-    }
+  function updateComment(value: string) {
+    if (!local) return
+    const next: Control = { ...local, comment: value }
+    setLocal(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
   return (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <div>
-        <Link to="/controls">← Back</Link>
-      </div>
-      <h2>{local.code}: {local.title}</h2>
-      {local.description && (
-        <p style={{ color: '#444', marginTop: 4 }}>{local.description}</p>
-      )}
-      <ScoreLine allControls={allControls} control={local} />
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span>Status:</span>
-        <select value={local.status ?? ''} onChange={e => setStatus((e.target.value || undefined) as any)}>
-          <option value="">unanswered</option>
-          <option value="not_implemented">not_implemented</option>
-          <option value="partially_implemented">partially_implemented</option>
-          <option value="fully_implemented">fully_implemented</option>
-        </select>
+    <>
+      <div className="toolbar">
+        <button className="btn" onClick={() => navigate(-1)}>{'<' } Back</button>
+        <h1 style={{ marginLeft: 12 }}>{local.code}</h1>
+        <div style={{ marginLeft: 'auto' }}>
+          <StatusBadge status={local.status} />
+        </div>
       </div>
 
-      <section>
-        <h3>Objectives</h3>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {local.objectives.map(o => (
-            <li key={o.id} style={{ marginBottom: 6 }}>
-              <label>
-                <input type="checkbox" checked={o.done} onChange={() => toggleObjective(o)} /> {o.text}
-              </label>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="card card--padded" style={{ display: 'grid', gap: '1rem' }}>
+        <header>
+          <h2 style={{ margin: 0 }}>{local.title}</h2>
+          <div style={{ color: 'var(--muted)' }}>
+            <strong>Family:</strong> {local.family ?? '-'} | <strong>Code:</strong> {local.code}
+          </div>
+        </header>
 
-      <section>
-        <h3>Evidence</h3>
-        <p>Stub: integrate Firebase Storage upload next.</p>
-        <input type="file" disabled title="Configure Firebase to enable uploads" />
-      </section>
+        <ScoreLine allControls={allControls} control={local} />
 
-      <section>
-        <h3>Comments / Answer</h3>
-        <textarea
-          placeholder="Write your answer/notes here"
-          value={local.comment ?? ''}
-          onChange={e => updateComment(e.target.value)}
-          rows={6}
-          style={{ width: '100%' }}
-        />
-      </section>
+        <Section title="Status">
+          <select value={local.status ?? ''} onChange={(event) => setStatus((event.target.value || undefined) as Status | undefined)}>
+            <option value="">unanswered</option>
+            <option value="not_implemented">not_implemented</option>
+            <option value="partially_implemented">partially_implemented</option>
+            <option value="fully_implemented">fully_implemented</option>
+          </select>
+        </Section>
+
+        <Section title="Description">
+          <p>{local.description ?? '-'}</p>
+        </Section>
+
+        <Section title="Assessment Objectives">
+          <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+            {local.objectives.length ? (
+              local.objectives.map(objective => (
+                <li key={objective.id} style={{ marginBottom: 6 }}>
+                  <label>
+                    <input type="checkbox" checked={objective.done} onChange={() => toggleObjective(objective)} /> {objective.text}
+                  </label>
+                </li>
+              ))
+            ) : (
+              <li>-</li>
+            )}
+          </ul>
+        </Section>
+
+        <Section title="Evidence">
+          <p>Stub: integrate Firebase Storage upload next.</p>
+          <input type="file" disabled title="Configure Firebase to enable uploads" />
+        </Section>
+
+        <Section title="Comments / Answer">
+          <textarea
+            placeholder="Write your answer or notes here"
+            value={local.comment ?? ''}
+            onChange={(event) => updateComment(event.target.value)}
+            rows={6}
+            style={{ width: '100%' }}
+          />
+        </Section>
+      </div>
+    </>
+  )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+      <h3 style={{ margin: 0, marginBottom: '.25rem' }}>{title}</h3>
+      {children}
     </div>
   )
 }
 
-function ScoreLine({ allControls, control }: { allControls: Control[], control: Control }) {
-  const w = controlWeight(allControls, control)
-  const contrib = controlContribution(control, w)
-  const color = contrib > 0 ? '#2e7d32' : contrib < 0 ? '#c62828' : '#9e9e9e'
+function StatusBadge({ status }: { status: Control['status'] }) {
+  const label = !status
+    ? 'unanswered'
+    : status === 'fully_implemented'
+    ? 'fully implemented'
+    : status === 'partially_implemented'
+    ? 'partially implemented'
+    : status === 'not_implemented'
+    ? 'not implemented'
+    : 'unanswered'
+
+  const className = !status
+    ? 'badge--muted'
+    : status === 'fully_implemented'
+    ? 'badge--ok'
+    : status === 'partially_implemented'
+    ? 'badge--warn'
+    : status === 'not_implemented'
+    ? 'badge--bad'
+    : 'badge--muted'
+
+  return <span className={`badge ${className}`}>{label}</span>
+}
+
+function ScoreLine({ allControls, control }: { allControls: Control[]; control: Control }) {
+  const weight = controlWeight(allControls, control)
+  const contribution = controlContribution(control, weight)
+  const color = contribution > 0 ? '#2e7d32' : contribution < 0 ? '#c62828' : '#9e9e9e'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#555' }}>
       <span>Weighted score:</span>
-      <span style={{ fontWeight: 600, color }}>{contrib.toFixed(1)}</span>
-      <span style={{ fontSize: 12, color: '#777' }}>(weight {w}, Fully=+w, Partial=+w×0.5, Not/Unanswered=−w)</span>
+      <span style={{ fontWeight: 600, color }}>{contribution.toFixed(1)}</span>
+      <span style={{ fontSize: 12, color: '#777' }}>(weight {weight}, Fully=+w, Partial=+w*0.5, Not/Unanswered=-w)</span>
     </div>
   )
 }
