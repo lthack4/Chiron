@@ -22,16 +22,13 @@ const LoginPage: React.FunctionComponent<ILoginProps> = () => {
         }
 
         setAuthing(true);
-
-        signInWithPopup(auth, provider)
-            .then(res => {
-                console.log(res.user.uid);
-                navigate('/');
-            })
-            .catch((error)=>{
-                console.log(error);
-                setAuthing(false);
-            });
+        const result= await signInWithPopup(auth, provider).then((result) => {
+            navigate('/');
+            return result;
+        }).catch((error) => {
+            setAuthing(false);
+        })
+            
     };
 
     return (
