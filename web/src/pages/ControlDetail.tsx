@@ -6,10 +6,12 @@ import { controlContribution, controlWeight } from '../scoring'
 
 export default function ControlDetail({
   allControls,
+  onUpdateLocal,
   onUpdateControl,
   readOnly = false,
 }: {
   allControls: Control[]
+  onUpdateLocal: (controls: Control[]) => void 
   onUpdateControl: (control: Control) => void
   readOnly?: boolean
 }) {
