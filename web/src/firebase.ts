@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
-import { initializeApp, type FirebaseApp } from 'firebase/app'
-import { Auth, getAuth, GoogleAuthProvider } from 'firebase/auth'
-import type { Firestore } from 'firebase/firestore'
-import type { FirebaseStorage } from 'firebase/storage'
-
+import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics'
+import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app'
+import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth'
+import { getFirestore, type Firestore } from 'firebase/firestore'
+import { getStorage, type FirebaseStorage } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY,
@@ -12,15 +12,48 @@ const firebaseConfig = {
   storageBucket: (import.meta as any).env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: (import.meta as any).env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: (import.meta as any).env.VITE_FIREBASE_APP_ID,
+  measurementId: (import.meta as any).env.VITE_FIREBASE_MEASUREMENT_ID,
+}
+
+function hasValidConfig(config: typeof firebaseConfig) {
+  return Boolean(
+    config.apiKey &&
+    config.authDomain &&
+    config.projectId &&
+    config.appId,
+  )
 }
 
 // may be set to false if firebaseConfig is not properly set or need to skip firebase initialization
-export const isFirebaseConfigured = true  // <-- Set to true if firebaseConfig is properly set
+export const isFirebaseConfigured = (hasValidConfig(firebaseConfig) && true) // <-- Set to true if firebaseConfig is properly set
 
-export const app: FirebaseApp | undefined = initializeApp(firebaseConfig)
-export let auth: Auth | undefined = getAuth(app)
-export const db: Firestore | undefined = undefined
-export const storage: FirebaseStorage | undefined = undefined
-export let provider: GoogleAuthProvider | undefined = new GoogleAuthProvider()
+function initFirebaseApp(): FirebaseApp | undefined {
+  if (!isFirebaseConfigured) return undefined
+  if (getApps().length) {
+    return getApp()
+  }
+  return initializeApp(firebaseConfig)
+}
 
-// still need to figure out how to make the firebase .env work... resposible for firebase errors
+export const app = initFirebaseApp()
+export const auth = app ? getAuth(app) : undefined
+export const db = app ? getFirestore(app) : undefined
+export const storage = app ? getStorage(app) : undefined
+export const provider = auth ? new GoogleAuthProvider() : undefined
+
+let analyticsInstance: Analytics | undefined
+if (app && typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      analyticsInstance = getAnalytics(app)
+    }
+  }).catch((err) => {
+    console.warn('Firebase analytics not supported in this environment', err)
+  })
+}
+
+export const analytics = analyticsInstance
+
+if (provider) {
+  provider.setCustomParameters({ prompt: 'select_account' })
+}

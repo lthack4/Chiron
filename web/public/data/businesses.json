@@ -1,0 +1,137 @@
+[
+  {
+    "id": "acme-industries",
+    "name": "Acme Industries",
+    "description": "Defense manufacturing demo tenant focused on CMMC Level 2 readiness.",
+    "members": [
+      { "uid": "demo-admin", "role": "owner", "displayName": "Demo Admin", "email": "admin@acme.example" },
+      { "uid": "demo-analyst", "role": "editor", "displayName": "Alex Analyst", "email": "analyst@acme.example" },
+      { "uid": "demo-viewer", "role": "viewer", "displayName": "Vera Viewer", "email": "viewer@acme.example" }
+    ],
+    "controlState": [
+      {
+        "controlId": "AC.L2-3.1.1",
+        "status": "partially_implemented",
+        "objectives": [
+          { "id": "a", "done": true },
+          { "id": "b", "done": true },
+          { "id": "c", "done": false },
+          { "id": "d", "done": false },
+          { "id": "e", "done": false },
+          { "id": "f", "done": false }
+        ],
+        "comment": "Identity and access provisioning solid; device inventory automation still underway.",
+        "updatedBy": "demo-admin",
+        "updatedAt": "2024-04-01T10:00:00Z"
+      },
+      {
+        "controlId": "AC.L2-3.1.2",
+        "status": "not_implemented",
+        "objectives": [
+          { "id": "a", "done": false },
+          { "id": "b", "done": false },
+          { "id": "c", "done": false },
+          { "id": "d", "done": false }
+        ],
+        "comment": "RBAC policy defined but not applied across ERP modules.",
+        "updatedBy": "demo-admin",
+        "updatedAt": "2024-03-12T09:20:00Z"
+      },
+      {
+        "controlId": "AC.L2-3.1.3",
+        "status": "partially_implemented",
+        "objectives": [
+          { "id": "a", "done": true },
+          { "id": "b", "done": true },
+          { "id": "c", "done": false },
+          { "id": "d", "done": false }
+        ],
+        "comment": "Firewall policies enforced; DLP workflow and exception register pending.",
+        "updatedBy": "demo-analyst",
+        "updatedAt": "2024-02-15T18:45:00Z"
+      }
+    ],
+    "poams": [
+      {
+        "id": "poam-001",
+        "controlId": "AC.L2-3.1.2",
+        "title": "Deploy RBAC enforcement in ERP",
+        "owner": "Karen Mills",
+        "status": "in_progress",
+        "riskLevel": "high",
+        "dueDate": "2024-05-15",
+        "notes": "Awaiting vendor change window; security advisory drafted."
+      }
+    ],
+    "evidence": [],
+    "invites": [
+      {
+        "email": "new.security@acme.example",
+        "role": "editor",
+        "invitedBy": "demo-admin",
+        "invitedAt": "2024-04-05T15:00:00Z",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": "globex-dynamics",
+    "name": "Globex Dynamics",
+    "description": "Professional services firm with hybrid workforce and cloud-first stack.",
+    "members": [
+      { "uid": "globex-admin", "role": "owner", "displayName": "Morgan Lee", "email": "morgan@globex.example" },
+      { "uid": "analyst-1", "role": "editor", "displayName": "Taylor Singh", "email": "tsingh@globex.example" }
+    ],
+    "controlState": [
+      {
+        "controlId": "AC.L2-3.1.1",
+        "status": "fully_implemented",
+        "objectives": [
+          { "id": "a", "done": true },
+          { "id": "b", "done": true },
+          { "id": "c", "done": true },
+          { "id": "d", "done": true },
+          { "id": "e", "done": true },
+          { "id": "f", "done": true }
+        ],
+        "comment": "Centralized IAM with conditional access and device compliance gates.",
+        "updatedBy": "globex-admin",
+        "updatedAt": "2024-03-22T14:00:00Z"
+      },
+      {
+        "controlId": "AC.L2-3.1.3",
+        "status": "fully_implemented",
+        "objectives": [
+          { "id": "a", "done": true },
+          { "id": "b", "done": true },
+          { "id": "c", "done": true },
+          { "id": "d", "done": true }
+        ],
+        "comment": "Managed DLP policies with continuous monitoring from MSSP.",
+        "updatedBy": "analyst-1",
+        "updatedAt": "2024-03-30T11:30:00Z"
+      }
+    ],
+    "poams": [
+      {
+        "id": "poam-044",
+        "title": "Document cloud exit procedures",
+        "owner": "Morgan Lee",
+        "status": "open",
+        "riskLevel": "medium",
+        "dueDate": "2024-06-30",
+        "notes": "Need coordinated runbook across legal, IT, and vendors."
+      }
+      ],
+    "evidence": [],
+    "invites": [
+      {
+        "email": "cio@globex.example",
+        "role": "admin",
+        "invitedBy": "globex-admin",
+        "invitedAt": "2024-04-10T10:30:00Z",
+        "status": "pending"
+      }
+    ]
+  }
+]

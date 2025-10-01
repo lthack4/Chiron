@@ -22,6 +22,9 @@ const LoginPage: React.FunctionComponent<ILoginProps> = () => {
         }
 
         setAuthing(true);
+
+
+        setAuthing(true);
         const result= await signInWithPopup(auth, provider).then((result) => {
             navigate('/');
             return result;

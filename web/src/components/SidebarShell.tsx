@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { ReactNode } from 'react'
+import { useBusinessContext } from '../context/BusinessContext'
 
 export default function SidebarShell({
   title,
@@ -10,13 +11,27 @@ export default function SidebarShell({
   actions?: ReactNode
   children: ReactNode
 }) {
+  const { selectedBusiness, membershipForSelected, isPlatformAdmin, canManageSelected } = useBusinessContext()
+
+  const roleLabel = membershipForSelected
+    ? normalizeRole(membershipForSelected.role)
+    : isPlatformAdmin
+    ? 'Admin'
+    : 'Guest'
+  const capabilityLabel = canManageSelected ? 'Can edit' : 'Read only'
+
   return (
     <div className="app--with-sidebar">
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar__brand">
-          <div className="brand__mark">C</div>
+          <img src="/ChironLogo-removebg.png" alt="Chiron logo" className="brand__logo" />
           <div className="brand__name">Chiron</div>
+          {selectedBusiness && (
+            <div style={{ fontSize: '.75rem', color: 'var(--muted)', marginTop: 4 }}>
+              {selectedBusiness.name}
+            </div>
+          )}
         </div>
 
         <div className="nav-group">
@@ -52,7 +67,10 @@ export default function SidebarShell({
         <h2 style={{margin:0}}>{title ?? 'Overview'}</h2>
         <div className="topbar__right">
           {actions}
-          <span style={{color:'var(--muted)', fontSize:'.9rem'}}>Administrator</span>
+          <span style={{color:'var(--muted)', fontSize:'.85rem', display: 'grid', justifyItems: 'end', lineHeight: 1.2}}>
+            <span>{roleLabel}</span>
+            <span style={{ fontSize: '.75rem' }}>{capabilityLabel}</span>
+          </span>
           <div className="avatar" />
         </div>
       </header>
@@ -63,4 +81,12 @@ export default function SidebarShell({
       </main>
     </div>
   )
+}
+
+function normalizeRole(role: string) {
+  if (role === 'owner') return 'Owner'
+  if (role === 'admin') return 'Admin'
+  if (role === 'editor') return 'Editor'
+  if (role === 'viewer') return 'Viewer'
+  return role
 }
