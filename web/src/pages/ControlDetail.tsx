@@ -6,12 +6,10 @@ import { controlContribution, controlWeight } from '../scoring'
 
 export default function ControlDetail({
   allControls,
-  onUpdateLocal,
   onUpdateControl,
   readOnly = false,
 }: {
   allControls: Control[]
-  onUpdateLocal: (controls: Control[]) => void 
   onUpdateControl: (control: Control) => void
   readOnly?: boolean
 }) {
@@ -48,7 +46,7 @@ export default function ControlDetail({
     if (!local || readOnly) return
     const next: Control = { ...local, status }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   function toggleObjective(objective: Objective) {
@@ -56,14 +54,14 @@ export default function ControlDetail({
     const nextObjectives = (local.objectives ?? []).map(obj => (obj.id === objective.id ? { ...obj, done: !obj.done } : obj))
     const next: Control = { ...local, objectives: nextObjectives }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   function updateComment(value: string) {
     if (!local || readOnly) return
     const next: Control = { ...local, comment: value }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   return (
