@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import type { Control, Objective, Status } from '../types'
 import { controlContribution, controlWeight } from '../scoring'
 
+
 export default function ControlDetail({
   allControls,
   onUpdateControl,
@@ -45,7 +46,7 @@ export default function ControlDetail({
     if (!local || readOnly) return
     const next: Control = { ...local, status }
     setLocal(next)
-    void onUpdateControl(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
   function toggleObjective(objective: Objective) {
@@ -53,14 +54,14 @@ export default function ControlDetail({
     const nextObjectives = (local.objectives ?? []).map(obj => (obj.id === objective.id ? { ...obj, done: !obj.done } : obj))
     const next: Control = { ...local, objectives: nextObjectives }
     setLocal(next)
-    void onUpdateControl(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
   function updateComment(value: string) {
     if (!local || readOnly) return
     const next: Control = { ...local, comment: value }
     setLocal(next)
-    void onUpdateControl(next)
+    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
   }
 
   return (
@@ -135,6 +136,7 @@ export default function ControlDetail({
             rows={6}
             style={{ width: '100%' }}
             disabled={readOnly}
+
           />
         </Section>
       </div>

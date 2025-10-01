@@ -1,10 +1,11 @@
+/// <reference types="vite/client" />
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics'
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 import { getStorage, type FirebaseStorage } from 'firebase/storage'
 
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY,
   authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID,
@@ -23,7 +24,8 @@ function hasValidConfig(config: typeof firebaseConfig) {
   )
 }
 
-export const isFirebaseConfigured = hasValidConfig(firebaseConfig)
+// may be set to false if firebaseConfig is not properly set or need to skip firebase initialization
+export const isFirebaseConfigured = (hasValidConfig(firebaseConfig) && true) // <-- Set to true if firebaseConfig is properly set
 
 function initFirebaseApp(): FirebaseApp | undefined {
   if (!isFirebaseConfigured) return undefined

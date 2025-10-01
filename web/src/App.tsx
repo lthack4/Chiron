@@ -10,9 +10,11 @@ import Policies from './pages/Policies'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
 import Login from './pages/Login'
+
 import AuthRoute, { getCurrentUserID, logout } from './context/AuthRoute'
 import { useBusinessContext } from './context/BusinessContext'
 import BusinessSelector from './components/BusinessSelector'
+
 
 
 function sortControls(arr: Control[]): Control[] {
@@ -71,6 +73,7 @@ export default function App() {
     canManageSelected,
     pendingInvites,
   } = useBusinessContext()
+
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [showBusinessPicker, setShowBusinessPicker] = useState(false)
   const navigate = useNavigate()
@@ -90,6 +93,7 @@ export default function App() {
     if (statusFilter === 'unanswered') return sortedControls.filter(c => !c.status)
     return sortedControls.filter(c => c.status === statusFilter)
   }, [sortedControls, statusFilter])
+
 
   useEffect(() => {
     setAccountMenuOpen(false)
@@ -139,6 +143,7 @@ export default function App() {
           selected={statusFilter}
           onSelect={(value) => navigate(value ? `/controls?status=${value}` : '/controls')}
         />
+
       )}
       {!isLoginRoute && selectedBusiness && (
         <button
@@ -175,6 +180,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => {
+
             clearSelectedBusiness()
             setAccountMenuOpen(false)
             setShowBusinessPicker(true)
@@ -234,6 +240,7 @@ export default function App() {
           setShowBusinessPicker(false)
         }}
       />
+
     </>
   )
 }
