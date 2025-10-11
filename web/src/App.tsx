@@ -89,6 +89,7 @@ export default function App() {
       <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
       <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   )
 
