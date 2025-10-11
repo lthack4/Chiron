@@ -17,18 +17,20 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-  if (!auth) {
-    throw new Error("Firebase Auth not initialized");
-  }
+        if (!auth) {
+            throw new Error("Firebase Auth not initialized");
+        }
 
-  await sendPasswordResetEmail(auth, email);
-  setMessage("Password reset email sent! Please check your email.");
-  setTimeout(() => navigate("/login"), 3000);
-} catch (err: any) {
-  setError(err.message || "Failed to send email.");
-} finally {
-  setLoading(false);
+        await sendPasswordResetEmail(auth, email);
+        setMessage("Password reset email sent! Please check your email.");
+        setTimeout(() => navigate("/login"), 3000);
+    }   catch (err: any) {
+        setError(err.message || "Failed to send email.");
+    }   finally {
+        setLoading(false);
+    }
 };
+
 
 
   return (
