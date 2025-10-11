@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
 import Login from './pages/Login'
 import AuthRoute, { logout } from './context/AuthRoute'
+import ResetPassword from './pages/ResetPassword' 
 
 
 function sortControls(arr: Control[]): Control[] {
