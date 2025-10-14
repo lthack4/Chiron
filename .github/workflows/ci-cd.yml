@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - Dev
-      - Add-CICD
+      - Adding-test-control-to-ci-cd
   pull_request:
     branches:
       - Dev
@@ -33,10 +33,11 @@ jobs:
         run: npm install
         working-directory: ./web
       
-      # # Run tests
-      # - name: Run tests
-      #   run: npm test
-      #   working-directory: ./web
+      # Run tests
+      - name: Run tests
+        working-directory: ./web
+        run: npm run test
+        
         
       # Build the application
       - name: Build application
