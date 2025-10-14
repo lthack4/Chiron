@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import type { Control, Objective, Status } from '../types'
+import type { Control, Objective, Status, Business } from '../types'
 import { controlContribution, controlWeight } from '../scoring'
+import { useBusinessContext } from '../context/BusinessContext'
+import { EvidenceUploader } from '../components/EvidenceUpload'
+import { doc, runTransaction } from 'firebase/firestore'
+import { getDownloadURL, ref as storageRef, deleteObject } from 'firebase/storage'
+import { db, storage } from '../firebase'
 
 
 export default function ControlDetail({
@@ -13,6 +18,7 @@ export default function ControlDetail({
   onUpdateControl: (control: Control) => void
   readOnly?: boolean
 }) {
+  const { selectedBusinessId } = useBusinessContext()
   const { id: raw } = useParams()
   const id = useMemo(() => (raw ? decodeURIComponent(raw) : ''), [raw])
   const navigate = useNavigate()
@@ -123,10 +129,14 @@ export default function ControlDetail({
           </ul>
         </Section>
 
-        <Section title="Evidence">
-          <p>Stub: integrate Firebase Storage upload next.</p>
-          <input type="file" disabled title="Configure Firebase to enable uploads" />
-        </Section>
+  <Section title="Evidence">
+    <EvidenceUploader
+      businessId={selectedBusinessId}
+      controlId={local.id}
+      disabled={readOnly}
+    />
+    <EvidenceList controlId={local.id} />
+  </Section>
 
         <Section title="Comments / Answer">
           <textarea
@@ -186,6 +196,89 @@ function ScoreLine({ allControls, control }: { allControls: Control[]; control: 
       <span>Weighted score:</span>
       <span style={{ fontWeight: 600, color }}>{contribution.toFixed(1)}</span>
       <span style={{ fontSize: 12, color: '#777' }}>(weight {weight}, Fully=+w, Partial=+w*0.5, Not/Unanswered=-w)</span>
+    </div>
+  )
+}
+
+// upload evidence for a given controlId section --------------------------
+
+// lists uploaded evidence for a given controlId
+// handles the delete and download actions aswell as displaying the list
+function EvidenceList({ controlId }: { controlId: string }) {
+  const { selectedBusiness, currentUserId, canManageSelected } = useBusinessContext()
+  const [loading, setLoading] = useState(false)
+  const items = (selectedBusiness?.evidence ?? []).filter((e: any) => e.controlId === controlId || e.path?.includes(controlId))
+
+  // delete evidence item
+  async function handleDelete(evidenceItem: any) {        //may change the uploaded by to user_name instead of user_id
+    if (!selectedBusiness) return
+    if (!currentUserId) return
+    const isUploader = evidenceItem.uploadedBy === currentUserId
+    if (!isUploader && !canManageSelected) return
+
+    setLoading(true)
+    try {
+      // delete storage object first if path exists
+      if (evidenceItem.path) {
+        try {
+          const objRef = storageRef(storage!, evidenceItem.path)
+          await deleteObject(objRef)
+        } catch (err) {
+          console.warn('Failed to delete storage object (may not exist or permissions), continuing to remove metadata', err)
+        }
+      }
+      const businessRef = doc(db!, 'businesses', selectedBusiness.id)
+      await runTransaction(db!, async (tx) => {
+        const snap = await tx.get(businessRef)
+        if (!snap.exists()) throw new Error('Business not found')
+        const data = snap.data() as any
+        const newEvidence = (data.evidence ?? []).filter((it: any) => it.id !== evidenceItem.id)
+        tx.update(businessRef, { evidence: newEvidence })
+      })
+    } catch (err) {
+      console.error('Failed to remove evidence', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+// download evidence item
+// if item has a url, open in new tab
+// if item has a path, get download url and open
+  async function handleDownload(item: any) {
+    try {
+      if (item.url) {
+        window.open(item.url, '_blank')
+        return
+      }
+      if (!item.path) return
+      const ref = storageRef(storage!, item.path)
+      const url = await getDownloadURL(ref)
+      window.open(url, '_blank')
+    } catch (err) {
+      console.error('Failed to get download URL', err)
+    }
+  }
+
+  if (!selectedBusiness || items.length === 0) {
+    return <div style={{ color: 'var(--muted)' }}>No evidence uploaded yet.</div>
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      {items.map((item: any) => (
+        <div key={item.id} style={{ display: 'flex', gap: 8, alignItems: 'center', border: '1px solid var(--border)', padding: 8, borderRadius: 6 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>{item.name || item.filename}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>Uploaded by {item.uploadedBy} • {new Date(item.uploadedAt).toLocaleString()}</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" onClick={() => handleDownload(item)} style={{ padding: '6px 8px' }}>Download</button>
+            {(item.uploadedBy === currentUserId || canManageSelected) && (
+              <button type="button" onClick={() => handleDelete(item)} disabled={loading} style={{ padding: '6px 8px', background: '#fef2f2', border: '1px solid #fecaca' }}>Remove</button>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
