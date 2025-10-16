@@ -10,11 +10,10 @@ import Policies from './pages/Policies'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
 import Login from './pages/Login'
-
+import ResetPassword from './pages/ResetPassword' 
 import AuthRoute, { getCurrentUserID, logout } from './context/AuthRoute'
 import { useBusinessContext } from './context/BusinessContext'
 import BusinessSelector from './components/BusinessSelector'
-
 
 
 function sortControls(arr: Control[]): Control[] {
@@ -131,6 +130,7 @@ export default function App() {
       <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
       <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   )
 
