@@ -18,8 +18,8 @@ describe('Settings Page', () => {
     expect(screen.getByText('Account Information')).toBeInTheDocument()
 
     // Click “Change Password”
-    fireEvent.click(screen.getByText('Change Password'))
-    expect(screen.getByText('Change Password')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByText('Change Password')[0])
+    expect(screen.getByRole('heading', { name: /change password/i })).toBeInTheDocument()
 
     // Click “Support”
     fireEvent.click(screen.getByText('Support'))
@@ -30,7 +30,7 @@ describe('Settings Page', () => {
     render(<Settings />)
     fireEvent.click(screen.getByText('Change Password'))
 
-    const eyeButton = screen.getAllByRole('button', { name: /👁|🙈/ })[0]
+    const eyeButton = screen.getByRole('button', { name: /toggle current password visibility/i })
     const passwordField = screen.getByLabelText('Current Password')
 
     // Initially hidden

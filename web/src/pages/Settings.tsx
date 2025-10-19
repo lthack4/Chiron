@@ -77,16 +77,20 @@ export default function Settings() {
       <h3 className="text-xl font-semibold text-white mb-4">Change Password</h3>
       <div className="bg-neutral-800 rounded-lg p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">
+          <label 
+            htmlFor="currentPassword"
+            className="block text-sm font-medium text-neutral-300 mb-2">
             Current Password
           </label>
           <div className="relative">
             <input
+              id="currentPassword"
               type={showCurrentPassword ? 'text' : 'password'}
               className="w-full px-3 py-2 pr-10 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               type="button"
+              aria-label="Toggle Current Password Visibility"
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
               className="absolute right-3 top-2.5 text-neutral-400 hover:text-white"
             >
@@ -95,11 +99,14 @@ export default function Settings() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">
+          <label 
+            htmlFor="newPassword" 
+            className="block text-sm font-medium text-neutral-300 mb-2">
             New Password
           </label>
           <div className="relative">
             <input
+              id="newPassword" 
               type={showNewPassword ? 'text' : 'password'}
               className="w-full px-3 py-2 pr-10 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
