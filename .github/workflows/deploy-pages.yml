@@ -2,7 +2,7 @@ name: Deploy (GitHub Pages)
 
 on:
   push:
-    branches: [ Dev ]
+    branches: [ Dev, fixing-POAMs ]
     paths:
       - "web/**"
       - ".github/workflows/**"
