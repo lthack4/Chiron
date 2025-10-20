@@ -25,3 +25,4 @@ React + Vite + TypeScript app for the Chiron CMMC manager.
 - The selector honors invite-only access. Admins can review outstanding invites before onboarding teammates.
 - When Firebase auth is disabled, the app falls back to a demo admin user (`demo-admin`). Change the active demo account by setting `localStorage.setItem('chiron:demoUserId', '<uid>')` in the browser console (e.g., `demo-viewer`).
 
+www
