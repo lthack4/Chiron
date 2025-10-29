@@ -7,6 +7,15 @@ on:
         description: 'Version bump to apply (patch | minor | major)'
         required: true
         default: 'patch'
+      prerelease:
+        description: 'Pre-release identifier (e.g., alpha, beta, dev) - leave empty for production release'
+        required: false
+        type: string
+      branch:
+        description: 'Branch to release from (default: main)'
+        required: false
+        default: 'main'
+        type: string
 
 jobs:
   release:
@@ -22,6 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Use Node 20
         uses: actions/setup-node@v4
@@ -42,10 +52,15 @@ jobs:
       - name: Bump version (package.json only)
         id: bump
         run: |
-          npm version ${{ github.event.inputs.bump }} --no-git-tag-version
+          VERSION_ARGS="${{ github.event.inputs.bump }}"
+          if [ ! -z "${{ github.event.inputs.prerelease }}" ]; then
+            VERSION_ARGS="pre${VERSION_ARGS} --preid=${{ github.event.inputs.prerelease }}"
+          fi
+          npm version $VERSION_ARGS --no-git-tag-version
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "new_tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=${{ github.event.inputs.prerelease != '' }}" >> $GITHUB_OUTPUT
 
       - name: Commit version change
         run: |
@@ -53,7 +68,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json || true
           git commit -m "chore(release): bump web version to ${{ steps.bump.outputs.new_version }}" || echo "No changes to commit"
-          git push origin HEAD:main
+          git push origin HEAD:${{ github.event.inputs.branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,6 +85,10 @@ jobs:
         with:
           tag_name: ${{ steps.bump.outputs.new_tag }}
           release_name: Release ${{ steps.bump.outputs.new_version }}
-          body: Automated release created by workflow
+          body: |
+            ${{ github.event.inputs.prerelease != '' && 'Pre-release build from branch: ' || 'Release from branch: ' }}${{ github.event.inputs.branch }}
+            
+            Automated release created by workflow
+          prerelease: ${{ steps.bump.outputs.is_prerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
