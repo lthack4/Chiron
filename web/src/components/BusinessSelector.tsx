@@ -1,4 +1,5 @@
 import type { Business, BusinessInviteSummary } from '../types'
+import { getCurrentUserDisplayName } from '../context/AuthRoute'
 
 interface BusinessSelectorProps {
   open: boolean
@@ -37,6 +38,8 @@ export default function BusinessSelector({
   const hasInvites = isPlatformAdmin && pendingInvites.length > 0
   const nothingToShow = !loading && !error && !hasMemberCompanies && !hasDiscoverable
 
+  const currentUserName = getCurrentUserDisplayName()
+
   return (
     <div
       style={{
@@ -71,7 +74,7 @@ export default function BusinessSelector({
               Your evidence, POAMs, and control answers live inside the company workspace you choose.
             </p>
             <p style={{ margin: '0.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
-              Signed in as <code>{currentUserId ?? 'unknown-user'}</code>{' '}
+              Signed in as <code>{currentUserName ?? 'unknown-user'}</code>{' '}
               {isPlatformAdmin ? (
                 <span style={{ color: 'var(--accent, #2563eb)' }}>• admin access</span>
               ) : (
