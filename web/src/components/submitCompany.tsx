@@ -1,5 +1,4 @@
-
-import {Business, BusinessInvite} from '../types'
+import {Business, BusinessInvite, Certificates} from '../types'
 import React, {useState, KeyboardEvent} from 'react';
 import { db } from '../firebase';
 import {setDoc, doc} from 'firebase/firestore';
@@ -24,6 +23,7 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
         id: business.id || nanoid() // Generate unique ID if not provided
     });
     const [companyName, setCompanyName] = useState<string>(business.name || '');
+    const [selectedCertificates, setSelectedCertificates] = useState<string[]>(companyData.certificates || []);
     const [emailInput, setEmailInput] = useState<string>('');
     // Default role selector for newly added invites
     const [selectedRole, setSelectedRole] = useState<'owner' | 'admin' | 'editor' | 'viewer'>('viewer');
@@ -47,6 +47,14 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
             e.preventDefault();
             addEmail();
         }
+    };
+
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setCompanyData(prev => ({ ...prev, description: e.target.value }));
+    };
+
+    const toggleCertificate = (cert: string) => {
+        setSelectedCertificates(prev => prev.includes(cert) ? prev.filter(c => c !== cert) : [...prev, cert]);
     };
 
     const addEmail = () => {
@@ -115,6 +123,7 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
                 description: companyData.description ?? '',
                 evidence: [],
                 invites: invitesToSave,
+                certificates: selectedCertificates,
                 members: companyData.members ?? [],
                 name: companyData.name,
                 poams: [],
@@ -134,8 +143,22 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
     }
     return (
     <form id='create-company-form' onSubmit={handleSubmit}>
-        <input type="text" name = "companyName" placeholder = "Company name" onChange={ handleNameChange } required/> <br />
-        <textarea placeholder = "Company description (optional)" value={business.description}/> <br />
+        <input
+            type="text"
+            name="companyName"
+            placeholder="Company name"
+            value={companyData.name}
+            onChange={handleNameChange}
+            required
+        />
+        <br />
+        <textarea
+            placeholder="Company description (optional)"
+            value={companyData.description || ''}
+            onChange={handleDescriptionChange}
+            style={{ width: '100%', height: '100px' }}
+        />
+        <br />
         <div style={{ marginBottom: '1rem' }}>
             <p style={{ display: 'block', marginBottom: '0.5rem' }}>Invite Members by Email. Note that you need to give yourself a role if needed</p>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -216,12 +239,19 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
         <h3 > Certifications </h3><br />
         <div id = "certificatesList" >
             <div style={ { display: 'grid', gap: '1rem' } }>
-                { ['ISO 27001', 'SOC 2', 'HIPAA', 'FedRAMP', 'CMMC-I2'].map((cert) => (        /* ls of certs must be changed to be dynamicly fetched from db*/
-                    <label key= { cert } style = {{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} >
-                    <input type="checkbox" value = { cert } />
-                    { cert }
+                { Certificates.map((cert) => (        /* ls of certs must be changed to be dynamicly fetched from db*/
+                    <label key={cert} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                            id={cert}
+                            type="checkbox"
+                            value={cert}
+                            checked={selectedCertificates.includes(cert)}
+                            onChange={() => toggleCertificate(cert)}
+                        />
+                        {cert}
                     </label>
-                ))} <br />
+                ))}
+                <br />
             </div>
         </div>
         <footer>
