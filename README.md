@@ -24,6 +24,65 @@ This repo includes:
    - `firebase init` (use existing `firebase.json`, select Hosting, Firestore, Storage)
    - `pnpm build` then `firebase deploy`
 
+## Releasing New Versions
+
+The project uses Semantic Versioning (MAJOR.MINOR.PATCH):
+- PATCH (0.0.x): Bug fixes and minor updates that don't change functionality
+- MINOR (0.x.0): New features that don't break existing functionality
+- MAJOR (x.0.0): Breaking changes that require updates to existing integrations
+
+For development branches, we use pre-release versions:
+- Development: x.y.z-dev.n (e.g., 1.2.0-dev.1)
+- Alpha: x.y.z-alpha.n (e.g., 1.2.0-alpha.1)
+- Beta: x.y.z-beta.n (e.g., 1.2.0-beta.1)
+
+### Creating a Release
+
+#### Production Release
+1. Ensure your changes are merged to the `main` branch
+2. Go to GitHub Actions → "Release" workflow
+3. Click "Run workflow"
+4. Configure the release:
+   - Branch: `main`
+   - Version bump type:
+     - `patch` for bug fixes and non-functional changes
+     - `minor` for new features (backwards compatible)
+     - `major` for breaking changes
+   - Leave pre-release identifier empty
+5. Click "Run workflow"
+
+#### Development Release
+1. From your development branch (e.g., `feature/new-feature`)
+2. Go to GitHub Actions → "Release" workflow
+3. Click "Run workflow"
+4. Configure the release:
+   - Branch: your branch name (e.g., `feature/new-feature`)
+   - Version bump type: usually `patch` or `minor`
+   - Pre-release identifier: `dev`, `alpha`, or `beta`
+5. Click "Run workflow"
+
+Examples:
+- Dev branch patch: v1.2.3 → v1.2.4-dev.0
+- Dev branch minor: v1.2.3 → v1.3.0-dev.0
+- Alpha release: Use `alpha` as pre-release identifier
+- Beta release: Use `beta` as pre-release identifier
+
+The workflow will:
+1. Run tests and build the project
+2. Bump version in `web/package.json`
+3. Create a git tag (e.g., v1.2.3)
+4. Create a GitHub Release
+
+### Branch Protection Notes
+
+If `main` branch has protection rules that prevent GitHub Actions from pushing:
+1. Go to repository Settings → Branches → Branch protection rules
+2. Edit the rule for `main`
+3. Under "Restrict who can push", allow the GitHub Actions bot
+   OR
+4. Add a Personal Access Token (PAT) with repo access to repository secrets as RELEASE_TOKEN
+5. Contact repository admin if you need help with permissions
+
 ## Sprints & Deliverablesi
 - Sprint 1 (Weeks 1–4, Aug 25–Sep 21, due Sep 21)
   - Repo, app skeleton, and sample data complete
