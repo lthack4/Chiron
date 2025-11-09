@@ -14,6 +14,7 @@
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "firebase": "^10.14.1",
+    "nanoid": "^5.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-google-button": "^0.8.0",

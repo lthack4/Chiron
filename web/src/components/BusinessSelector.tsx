@@ -1,4 +1,9 @@
 import type { Business, BusinessInviteSummary } from '../types'
+import { getCurrentUserDisplayName } from '../context/AuthRoute'
+import { useState } from 'react'
+import Popup from './Popup';
+import './BusinessSelector.css'
+import SubmitCompany from './submitCompany'
 
 interface BusinessSelectorProps {
   open: boolean
@@ -37,8 +42,12 @@ export default function BusinessSelector({
   const hasInvites = isPlatformAdmin && pendingInvites.length > 0
   const nothingToShow = !loading && !error && !hasMemberCompanies && !hasDiscoverable
 
+  const currentUserName = getCurrentUserDisplayName()
+
+  const [buttonPopup, setButtonPopup] = useState(false);
+
   return (
-    <div
+    <div id ="business-selector-overlay"
       style={{
         position: 'fixed',
         inset: 0,
@@ -51,27 +60,15 @@ export default function BusinessSelector({
       role="dialog"
       aria-modal="true"
     >
-      <div
-        style={{
-          width: 'min(720px, 100%)',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          background: '#fff',
-          borderRadius: 12,
-          boxShadow: '0 20px 45px rgba(15, 23, 42, 0.25)',
-          padding: '2rem',
-          display: 'grid',
-          gap: '1.5rem',
-        }}
-      >
+      <div id="business-selector-modal">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
           <div>
-            <h2 style={{ margin: 0 }}>Select a company</h2>
+            <h2>Select a company</h2>
             <p style={{ margin: '0.25rem 0 0', color: 'var(--muted)' }}>
               Your evidence, POAMs, and control answers live inside the company workspace you choose.
             </p>
             <p style={{ margin: '0.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
-              Signed in as <code>{currentUserId ?? 'unknown-user'}</code>{' '}
+              Signed in as <code>{currentUserName ?? 'unknown-user'}</code>{' '}
               {isPlatformAdmin ? (
                 <span style={{ color: 'var(--accent, #2563eb)' }}>• admin access</span>
               ) : (
@@ -108,7 +105,7 @@ export default function BusinessSelector({
             {hasMemberCompanies && (
               <section style={{ display: 'grid', gap: '0.75rem' }}>
                 <header>
-                  <h3 style={{ margin: 0 }}>Your companies</h3>
+                  <h3>Your companies</h3>
                   <p style={{ margin: '.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
                     Workspaces you belong to directly.
                   </p>
@@ -122,7 +119,7 @@ export default function BusinessSelector({
             {hasDiscoverable && (
               <section style={{ display: 'grid', gap: '0.75rem' }}>
                 <header>
-                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h3>
                     All companies
                     <span style={{ fontSize: '.75rem', color: 'var(--accent, #2563eb)', textTransform: 'uppercase', letterSpacing: '.02em' }}>
                       admin
@@ -141,7 +138,7 @@ export default function BusinessSelector({
             {hasInvites && (
               <section style={{ display: 'grid', gap: '0.75rem' }}>
                 <header>
-                  <h3 style={{ margin: 0 }}>Pending invitations</h3>
+                  <h3>Pending invitations</h3>
                   <p style={{ margin: '.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
                     Manage outstanding invites before rolling access to teammates.
                   </p>
@@ -173,7 +170,7 @@ export default function BusinessSelector({
           </div>
         )}
 
-        <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '.5rem' }}>
+        <footer >
           <div style={{ fontSize: '.85rem', color: 'var(--muted)' }}>
             Companies are invite-only. Ask an admin to add teammates or promote them to admin to create workspaces.
           </div>
@@ -190,12 +187,21 @@ export default function BusinessSelector({
               transition: 'background 0.2s',
             }}
             title={canCreateBusiness ? 'Creating companies will tie into Firebase shortly.' : 'Only admins can create companies.'}
-            onClick={canCreateBusiness ? () => console.info('TODO: integrate create-company flow with Firebase backend') : undefined}
+            onClick={() => { setButtonPopup(true) }}
           >
             Create company
           </button>
+
+          {/* Popup for creating a new company */}
+          <Popup trigger={buttonPopup} setTrigger={setButtonPopup}>
+            <h2>Create a new company</h2>
+            <SubmitCompany business={{id: '', name: '', controlState: [], poams: [], evidence: [],members: [],invites: []
+            }} />
+          </Popup>
+
         </footer>
       </div>
+      
     </div>
   )
 }

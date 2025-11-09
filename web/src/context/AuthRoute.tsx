@@ -68,5 +68,8 @@ export function logout() {
 export function getCurrentUserID() {
     return authInstance?.currentUser?.uid
 }
+export function getCurrentUserDisplayName() {
+    return authInstance?.currentUser?.displayName
+}
 
 export default AuthRoute

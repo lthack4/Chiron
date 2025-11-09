@@ -1,5 +1,15 @@
 export type Status = 'not_implemented' | 'partially_implemented' | 'fully_implemented'
 
+// A small built-in list of known certificates used by the UI.
+// In future this can be fetched from Firestore or a config file.
+export const Certificates = [
+  'ISO 27001',
+  'SOC 2',
+  'HIPAA',
+  'FedRAMP',
+  'CMMC-I2',
+];
+
 export interface ObjectiveDefinition {
   id: string
   text: string
@@ -74,6 +84,7 @@ export interface Poam {
 
 export interface Business {
   id: string
+  certificates?: string[]
   name: string
   description?: string
   controlState: ControlState[]
