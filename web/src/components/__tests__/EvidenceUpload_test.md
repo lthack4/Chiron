@@ -61,6 +61,10 @@ Mocking strategy
 - Mock `../../context/AuthRoute.getCurrentUserID` to return a test uid.
 - Mock `global.fetch` calls used by BusinessProvider to supply static control and business JSON.
 
+Additional tests added
+- Evidence list rendering: verifies that `EvidenceList` displays only evidence items matching the given `controlId`, shows filename and "Uploaded by" metadata, and renders Download and Remove buttons as appropriate.
+- Permission cases: verifies Remove is shown when the current user is the uploader, and also when the current user has manager rights (`canManageSelected`).
+
 How to run
 - From the web folder:
 ```
