@@ -24,17 +24,6 @@ This repo includes:
    - `firebase init` (use existing `firebase.json`, select Hosting, Firestore, Storage)
    - `pnpm build` then `firebase deploy`
 
-## Releasing New Versions
-
-The project uses Semantic Versioning (MAJOR.MINOR.PATCH):
-- PATCH (0.0.x): Bug fixes and minor updates that don't change functionality
-- MINOR (0.x.0): New features that don't break existing functionality
-- MAJOR (x.0.0): Breaking changes that require updates to existing integrations
-
-For development branches, we use pre-release versions:
-- Development: x.y.z-dev.n (e.g., 1.2.0-dev.1)
-- Alpha: x.y.z-alpha.n (e.g., 1.2.0-alpha.1)
-- Beta: x.y.z-beta.n (e.g., 1.2.0-beta.1)
 
 ### Creating a Release
 
@@ -82,6 +71,28 @@ If `main` branch has protection rules that prevent GitHub Actions from pushing:
    OR
 4. Add a Personal Access Token (PAT) with repo access to repository secrets as RELEASE_TOKEN
 5. Contact repository admin if you need help with permissions
+
+### Manually bumping the web version locally
+
+If you want to update the `web` package version locally (for testing or to create a local release commit/tag), there are helper npm scripts in the `web` folder.
+
+From the repository root run:
+
+```powershell
+cd web
+npm run version:patch   # bumps patch (x.y.z -> x.y.z+1), commits and tags
+npm run version:minor   # bumps minor (x.y.z -> x.(y+1).0)
+npm run version:major   # bumps major (x.y.z -> (x+1).0.0)
+```
+
+These scripts call `npm version <level>`, which will update `web/package.json`, create a Git commit and a Git tag (e.g., `v1.2.3`) if your working tree is clean and Git is available. If you don't want npm to create the commit/tag automatically, run:
+
+```powershell
+cd web
+npm version patch --no-git-tag-version
+```
+
+Then commit and push the changes yourself, or rely on the release workflow to commit and push when running on CI.
 
 ## Sprints & Deliverablesi
 - Sprint 1 (Weeks 1–4, Aug 25–Sep 21, due Sep 21)
