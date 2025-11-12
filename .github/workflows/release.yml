@@ -12,9 +12,9 @@ on:
         required: false
         type: string
       branch:
-        description: 'Branch to release from (default: dev)'
+        description: 'Branch to release from (default: main)'
         required: false
-        default: 'dev'
+        default: 'main'
         type: string
 
 jobs:
