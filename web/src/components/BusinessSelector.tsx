@@ -9,11 +9,8 @@ interface BusinessSelectorProps {
   open: boolean
   loading: boolean
   error?: Error | null
-  currentUserId: string | null
   memberBusinesses: Business[]
-  discoverableBusinesses: Business[]
   pendingInvites: BusinessInviteSummary[]
-  isPlatformAdmin: boolean
   canCreateBusiness: boolean
   selectedId: string | null
   onSelect: (businessId: string) => void
@@ -24,11 +21,8 @@ export default function BusinessSelector({
   open,
   loading,
   error,
-  currentUserId,
   memberBusinesses,
-  discoverableBusinesses,
   pendingInvites,
-  isPlatformAdmin,
   canCreateBusiness,
   selectedId,
   onSelect,
@@ -38,9 +32,8 @@ export default function BusinessSelector({
 
   const canClose = Boolean(selectedId)
   const hasMemberCompanies = memberBusinesses.length > 0
-  const hasDiscoverable = isPlatformAdmin && discoverableBusinesses.length > 0
-  const hasInvites = isPlatformAdmin && pendingInvites.length > 0
-  const nothingToShow = !loading && !error && !hasMemberCompanies && !hasDiscoverable
+  const hasInvites = pendingInvites.length > 0
+  const nothingToShow = !loading && !error && !hasMemberCompanies
 
   const currentUserName = getCurrentUserDisplayName()
 
@@ -68,12 +61,7 @@ export default function BusinessSelector({
               Your evidence, POAMs, and control answers live inside the company workspace you choose.
             </p>
             <p style={{ margin: '0.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
-              Signed in as <code>{currentUserName ?? 'unknown-user'}</code>{' '}
-              {isPlatformAdmin ? (
-                <span style={{ color: 'var(--accent, #2563eb)' }}>• admin access</span>
-              ) : (
-                <span>• member access only</span>
-              )}
+              Signed in as <code>{currentUserName ?? 'unknown-user'}</code>
             </p>
           </div>
           {canClose && (
@@ -97,8 +85,8 @@ export default function BusinessSelector({
           </div>
         ) : nothingToShow ? (
           <div style={{ color: 'var(--muted)' }}>
-            <p style={{ marginTop: 0 }}>You do not have access to any companies yet.</p>
-            <p style={{ marginBottom: 0 }}>Ask an administrator to invite you or provision a workspace.</p>
+            <p style={{ marginTop: 0 }}>You do not have any companies yet.</p>
+            <p style={{ marginBottom: 0 }}>Create a company to start answering all 110 controls.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '1.5rem' }}>
@@ -116,31 +104,12 @@ export default function BusinessSelector({
               </section>
             )}
 
-            {hasDiscoverable && (
-              <section style={{ display: 'grid', gap: '0.75rem' }}>
-                <header>
-                  <h3>
-                    All companies
-                    <span style={{ fontSize: '.75rem', color: 'var(--accent, #2563eb)', textTransform: 'uppercase', letterSpacing: '.02em' }}>
-                      admin
-                    </span>
-                  </h3>
-                  <p style={{ margin: '.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
-                    You can open any workspace even if you are not on the member list.
-                  </p>
-                </header>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                  {discoverableBusinesses.map(business => renderBusinessCard({ business, selectedId, onSelect }))}
-                </div>
-              </section>
-            )}
-
             {hasInvites && (
               <section style={{ display: 'grid', gap: '0.75rem' }}>
                 <header>
                   <h3>Pending invitations</h3>
                   <p style={{ margin: '.15rem 0 0', color: 'var(--muted)', fontSize: '.85rem' }}>
-                    Manage outstanding invites before rolling access to teammates.
+                    Manage outstanding invites for the companies you own.
                   </p>
                 </header>
                 <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
@@ -172,7 +141,7 @@ export default function BusinessSelector({
 
         <footer >
           <div style={{ fontSize: '.85rem', color: 'var(--muted)' }}>
-            Companies are invite-only. Ask an admin to add teammates or promote them to admin to create workspaces.
+            Companies are invite-only. Create a workspace and invite teammates when you are ready.
           </div>
           <button
             type="button"
@@ -186,7 +155,7 @@ export default function BusinessSelector({
               cursor: canCreateBusiness ? 'pointer' : 'not-allowed',
               transition: 'background 0.2s',
             }}
-            title={canCreateBusiness ? 'Creating companies will tie into Firebase shortly.' : 'Only admins can create companies.'}
+            title={canCreateBusiness ? 'Creating companies will tie into Firebase shortly.' : 'Sign in to create companies.'}
             onClick={() => { setButtonPopup(true) }}
           >
             Create company

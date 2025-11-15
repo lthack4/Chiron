@@ -13,7 +13,7 @@ Scope
 User stories
 - As a signed-in user, I can upload a file for a control and see it listed under Evidence.
 - As the uploader, I can remove my uploaded file and it will disappear from the list.
-- As a manager/admin, I can remove other users' uploaded evidence.
+- As a workspace owner, I can remove other users' uploaded evidence.
 
 Contracts / Success criteria
 - Upload flow:

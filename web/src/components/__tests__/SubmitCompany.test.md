@@ -11,7 +11,7 @@ Scope
 - Run in demo/offline mode by mocking Firebase so tests are deterministic.
 
 User stories
-- As a signed-in user, with the admin or owner status, I can create a company and invite and designate roles of users. 
+- As a signed-in user, I can create a company and invite and designate roles for teammates.
 
 Contracts / Success criteria
 - Upload company flow:

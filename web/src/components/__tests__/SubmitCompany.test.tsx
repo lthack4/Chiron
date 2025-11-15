@@ -16,6 +16,15 @@ vi.mock('firebase/firestore', () => ({
 
 vi.mock('../../firebase', () => ({
   db: {},
+  auth: undefined,
+  provider: undefined,
+  isFirebaseConfigured: false,
+}))
+
+vi.mock('../../context/BusinessContext', () => ({
+  useBusinessContext: () => ({
+    currentUserId: 'test-owner',
+  }),
 }))
 
 describe('SubmitCompany', () => {

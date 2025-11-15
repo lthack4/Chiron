@@ -4,7 +4,7 @@
     "name": "Acme Industries",
     "description": "Defense manufacturing demo tenant focused on CMMC Level 2 readiness.",
     "members": [
-      { "uid": "demo-admin", "role": "owner", "displayName": "Demo Admin", "email": "admin@acme.example" },
+      { "uid": "demo-owner", "role": "owner", "displayName": "Demo Owner", "email": "owner@acme.example" },
       { "uid": "demo-analyst", "role": "editor", "displayName": "Alex Analyst", "email": "analyst@acme.example" },
       { "uid": "demo-viewer", "role": "viewer", "displayName": "Vera Viewer", "email": "viewer@acme.example" }
     ],
@@ -21,7 +21,7 @@
           { "id": "f", "done": false }
         ],
         "comment": "Identity and access provisioning solid; device inventory automation still underway.",
-        "updatedBy": "demo-admin",
+        "updatedBy": "demo-owner",
         "updatedAt": "2024-04-01T10:00:00Z"
       },
       {
@@ -34,7 +34,7 @@
           { "id": "d", "done": false }
         ],
         "comment": "RBAC policy defined but not applied across ERP modules.",
-        "updatedBy": "demo-admin",
+        "updatedBy": "demo-owner",
         "updatedAt": "2024-03-12T09:20:00Z"
       },
       {
@@ -68,7 +68,7 @@
       {
         "email": "new.security@acme.example",
         "role": "editor",
-        "invitedBy": "demo-admin",
+        "invitedBy": "demo-owner",
         "invitedAt": "2024-04-05T15:00:00Z",
         "status": "pending"
       }
@@ -127,7 +127,7 @@
     "invites": [
       {
         "email": "cio@globex.example",
-        "role": "admin",
+        "role": "editor",
         "invitedBy": "globex-admin",
         "invitedAt": "2024-04-10T10:30:00Z",
         "status": "pending"

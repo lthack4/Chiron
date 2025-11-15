@@ -10,6 +10,25 @@ export interface IAuthRouteProps {
 
 const authInstance = firebaseAuth
 const firebaseEnabled = Boolean(isFirebaseConfigured && authInstance)
+export const AUTH_COMPLETE_KEY = 'chiron:authComplete'
+export const AUTH_CHANGE_EVENT = 'chiron-auth-change'
+
+function dispatchAuthChange() {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
+}
+
+export function setAuthCompleteFlag() {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(AUTH_COMPLETE_KEY, 'true')
+    dispatchAuthChange()
+}
+
+export function clearAuthCompleteFlag() {
+    if (typeof window === 'undefined') return
+    window.localStorage.removeItem(AUTH_COMPLETE_KEY)
+    dispatchAuthChange()
+}
 
 const AuthRoute: React.FC<IAuthRouteProps> = ({ children, onAuthSuccess }) => {
     const shouldBypass = useMemo(() => !firebaseEnabled || !authInstance, [])
@@ -54,11 +73,13 @@ function useAuthState(auth: Auth) {
 
 export function logout() {
     if (!authInstance) {
+        clearAuthCompleteFlag()
         window.location.href = '/login'
         return
     }
 
     signOut(authInstance).then(() => {
+        clearAuthCompleteFlag()
         window.location.href = '/login'
     }).catch((error) => {
         console.error('Error signing out:', error)

@@ -11,12 +11,10 @@ export default function SidebarShell({
   actions?: ReactNode
   children: ReactNode
 }) {
-  const { selectedBusiness, membershipForSelected, isPlatformAdmin, canManageSelected } = useBusinessContext()
+  const { selectedBusiness, membershipForSelected, canManageSelected } = useBusinessContext()
 
   const roleLabel = membershipForSelected
     ? normalizeRole(membershipForSelected.role)
-    : isPlatformAdmin
-    ? 'Admin'
     : 'Guest'
   const capabilityLabel = canManageSelected ? 'Can edit' : 'Read only'
 
@@ -85,7 +83,6 @@ export default function SidebarShell({
 
 function normalizeRole(role: string) {
   if (role === 'owner') return 'Owner'
-  if (role === 'admin') return 'Admin'
   if (role === 'editor') return 'Editor'
   if (role === 'viewer') return 'Viewer'
   return role
