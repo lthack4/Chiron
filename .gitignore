@@ -5,6 +5,8 @@ web/dist/
 
 # Env
 web/.env
+web/coverage/
+web/adminTools/FirebaseAdminKeys.json
 
 # Logs
 npm-debug.log*
