@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { useBusinessContext } from '../context/BusinessContext'
+import ThemeToggle from './ThemeToggle'
 
 export default function SidebarShell({
   title,
@@ -66,6 +67,7 @@ export default function SidebarShell({
       <header className="topbar">
         <h2 style={{margin:0}}>{title ?? 'Overview'}</h2>
         <div className="topbar__right">
+          <ThemeToggle />
           {actions}
           <span style={{color:'var(--muted)', fontSize:'.85rem', display: 'grid', justifyItems: 'end', lineHeight: 1.2}}>
             <span>{roleLabel}</span>
