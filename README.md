@@ -24,9 +24,6 @@ This repo includes:
    - `firebase init` (use existing `firebase.json`, select Hosting, Firestore, Storage)
    - `pnpm build` then `firebase deploy`
 
-
-### Creating a Release
-
 #### Production Release
 1. Ensure your changes are merged to the `main` branch
 2. Go to GitHub Actions → "Release" workflow
