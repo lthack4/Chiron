@@ -30,14 +30,15 @@ describe('Settings Page', () => {
     render(<Settings />)
     fireEvent.click(screen.getByText('Change Password'))
 
-    const eyeButton = screen.getByRole('button', { name: /toggle current password visibility/i })
+    const eyeButton = screen.getAllByRole('button', { name: /toggle current password visibility/i })
     const passwordField = screen.getByLabelText('Current Password')
 
     // Initially hidden
     expect(passwordField).toHaveAttribute('type', 'password')
 
     // Toggle visibility
-    fireEvent.click(eyeButton)
+    // just one needed
+    fireEvent.click(eyeButton[0])
     expect(passwordField).toHaveAttribute('type', 'text')
   })
 
