@@ -18,7 +18,8 @@ global.fetch = vi.fn(async (input: any) => {
 
 // Mock dependencies used by ControlDetail
 vi.mock('../../components/EvidenceUpload', () => ({
-  EvidenceUploader: ({ businessId, controlId }: any) => <div data-testid="uploader">uploader {controlId}</div>
+  EvidenceUploader: ({ businessId, controlId }: any) => <div data-testid="uploader">uploader {controlId}</div>,
+  EvidenceList: ({ controlId }: any) => <div>No evidence uploaded yet.</div>
 }))
 
 vi.mock('../../firebase', async () => ({
