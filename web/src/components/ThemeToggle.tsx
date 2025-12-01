@@ -2,11 +2,21 @@ import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
   const getInitialTheme = () => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark" || saved === "light") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    try {
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return 'light'
+      }
+      const saved = localStorage.getItem('theme')
+      if (saved === 'dark' || saved === 'light') return saved
+
+      const prefersDark =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+
+      return prefersDark ? 'dark' : 'light'
+    } catch (e) {
+      return 'light'
+    }
   };
 
   const [theme, setTheme] = useState(getInitialTheme);
