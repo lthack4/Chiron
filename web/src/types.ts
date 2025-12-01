@@ -52,7 +52,7 @@ export interface ControlState {
 
 export interface BusinessMember {
   uid: string
-  role: 'owner' | 'admin' | 'editor' | 'viewer'
+  role: 'owner' | 'editor' | 'viewer'
   displayName?: string
   email?: string
 }

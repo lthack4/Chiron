@@ -20,7 +20,8 @@ React + Vite + TypeScript app for the Chiron CMMC manager.
 
 ## Multi-company preview mode
 - Seed data now includes multiple companies with per-member roles, pending invites, and evidence placeholders (`public/data/businesses.json`).
-- Only admins/owners can see every company and start the "Create company" flow. Editors/Viewers are limited to the workspaces they belong to.
-- Control edits require editor or higher. Viewers stay read-only; the UI reflects their capabilities in the header and control detail screen.
-- The selector honors invite-only access. Admins can review outstanding invites before onboarding teammates.
-- When Firebase auth is disabled, the app falls back to a demo admin user (`demo-admin`). Change the active demo account by setting `localStorage.setItem('chiron:demoUserId', '<uid>')` in the browser console (e.g., `demo-viewer`).
+- Every authenticated user can create their own company; editors/viewers are limited to the workspaces they belong to.
+- Control edits require owner or editor role. Viewers stay read-only; the UI reflects their capabilities in the header and control detail screen.
+- The selector honors invite-only access. Owners can review outstanding invites before onboarding teammates.
+- When Firebase auth is disabled, the app falls back to a demo owner user (`demo-owner`). Change the active demo account by setting `localStorage.setItem('chiron:demoUserId', '<uid>')` in the browser console (e.g., `demo-viewer`).
+

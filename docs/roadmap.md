@@ -16,7 +16,7 @@
 - Evidence metadata in Firestore and files in Storage
 
 ## Week 8–9: Roles + Audit
-- userProfiles and simple roles (admin/member/viewer)
+- userProfiles and simple roles (owner/editor/viewer)
 - Guard writes in rules based on role
 - Add updatedBy/updatedAt fields; basic change log view
 

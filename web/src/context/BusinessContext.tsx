@@ -19,7 +19,6 @@ import { onAuthStateChanged } from 'firebase/auth'
 
 import type {
   Business,
-  BusinessInvite,
   BusinessInviteSummary,
   BusinessMember,
   Control,
@@ -30,20 +29,17 @@ import type {
 } from '../types'
 import { auth as firebaseAuth, db, isFirebaseConfigured } from '../firebase'
 import { getCurrentUserID } from './AuthRoute'
+import { STORAGE_DEMO_USER, STORAGE_SELECTED_BUSINESS } from '../constants/storage'
 
-const STORAGE_KEY = 'chiron:selectedBusinessId'
-const USER_STORAGE_KEY = 'chiron:demoUserId'
-const DEMO_DEFAULT_UID = 'demo-admin'
+const DEMO_DEFAULT_UID = 'demo-owner'
 
 interface BusinessContextValue {
   loading: boolean
   error: Error | null
   currentUserId: string | null
-  isPlatformAdmin: boolean
   controlDefinitions: ControlDefinition[]
   businesses: Business[]
   memberBusinesses: Business[]
-  discoverableBusinesses: Business[]
   selectedBusinessId: string | null
   selectedBusiness: Business | null
   membershipForSelected: BusinessMember | null
@@ -54,6 +50,7 @@ interface BusinessContextValue {
   selectBusiness: (businessId: string) => void
   clearSelectedBusiness: () => void
   updateControl: (control: Control, metadata?: Partial<Pick<ControlState, 'updatedAt' | 'updatedBy'>>) => Promise<void>
+  leaveBusiness: (businessId: string) => Promise<void>
 }
 
 const BusinessContext = createContext<BusinessContextValue | undefined>(undefined)
@@ -67,7 +64,7 @@ export function BusinessProvider({ children }: PropsWithChildren) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => resolveCurrentUserId())
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
-    const stored = window.localStorage.getItem(STORAGE_KEY)
+    const stored = window.localStorage.getItem(STORAGE_SELECTED_BUSINESS)
     return stored || null
   })
 
@@ -119,7 +116,7 @@ export function BusinessProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (typeof window === 'undefined') return
     const handler = (event: StorageEvent) => {
-      if (event.key === USER_STORAGE_KEY) {
+      if (event.key === STORAGE_DEMO_USER) {
         setCurrentUserId(resolveCurrentUserId())
       }
     }
@@ -130,9 +127,9 @@ export function BusinessProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (selectedBusinessId) {
-      window.localStorage.setItem(STORAGE_KEY, selectedBusinessId)
+      window.localStorage.setItem(STORAGE_SELECTED_BUSINESS, selectedBusinessId)
     } else {
-      window.localStorage.removeItem(STORAGE_KEY)
+      window.localStorage.removeItem(STORAGE_SELECTED_BUSINESS)
     }
   }, [selectedBusinessId])
 
@@ -206,24 +203,18 @@ export function BusinessProvider({ children }: PropsWithChildren) {
     return businesses.filter(business => hasMembership(business, currentUserId))
   }, [businesses, currentUserId])
 
-  const isPlatformAdmin = useMemo(() => {
-    if (!currentUserId) return false
-    return memberBusinesses.some(business => hasRole(business, currentUserId, ['owner', 'admin']))
-  }, [memberBusinesses, currentUserId])
-
-  const discoverableBusinesses = useMemo(() => {
-    if (!isPlatformAdmin) return []
-    const memberIds = new Set(memberBusinesses.map(b => b.id))
-    return businesses.filter(business => !memberIds.has(business.id))
-  }, [businesses, memberBusinesses, isPlatformAdmin])
-
   useEffect(() => {
     if (!selectedBusinessId) return
-    const accessible = [...memberBusinesses, ...discoverableBusinesses].some(b => b.id === selectedBusinessId)
+    const accessible = memberBusinesses.some(b => b.id === selectedBusinessId)
     if (!accessible) {
       setSelectedBusinessId(null)
     }
-  }, [memberBusinesses, discoverableBusinesses, selectedBusinessId])
+  }, [memberBusinesses, selectedBusinessId])
+
+  useEffect(() => {
+    if (selectedBusinessId || memberBusinesses.length === 0) return
+    setSelectedBusinessId(memberBusinesses[0].id)
+  }, [memberBusinesses, selectedBusinessId])
 
   const selectedBusiness = useMemo(() => {
     if (!selectedBusinessId) return null
@@ -236,9 +227,11 @@ export function BusinessProvider({ children }: PropsWithChildren) {
   }, [selectedBusiness, currentUserId])
 
   const pendingInvites = useMemo(() => {
-    if (!isPlatformAdmin) return []
+    if (!currentUserId) return []
     const result: BusinessInviteSummary[] = []
-    for (const business of businesses) {
+    for (const business of memberBusinesses) {
+      const membership = business.members?.find(member => member.uid === currentUserId)
+      if (membership?.role !== 'owner') continue
       for (const invite of business.invites ?? []) {
         if (invite.status === 'pending') {
           result.push({ ...invite, businessId: business.id, businessName: business.name })
@@ -246,9 +239,9 @@ export function BusinessProvider({ children }: PropsWithChildren) {
       }
     }
     return result
-  }, [businesses, isPlatformAdmin])
+  }, [memberBusinesses, currentUserId])
 
-  const canCreateBusiness = isPlatformAdmin
+  const canCreateBusiness = Boolean(currentUserId)
 
   const controls = useMemo(() => {
     if (!selectedBusiness) return []
@@ -257,11 +250,8 @@ export function BusinessProvider({ children }: PropsWithChildren) {
 
   const canAccessBusiness = useCallback((businessId: string) => {
     if (!currentUserId) return false
-    if (isPlatformAdmin) {
-      return businesses.some(b => b.id === businessId)
-    }
     return memberBusinesses.some(b => b.id === businessId)
-  }, [businesses, currentUserId, isPlatformAdmin, memberBusinesses])
+  }, [currentUserId, memberBusinesses])
 
   const selectBusiness = useCallback((businessId: string) => {
     setSelectedBusinessId(prev => (canAccessBusiness(businessId) ? businessId : prev))
@@ -273,10 +263,9 @@ export function BusinessProvider({ children }: PropsWithChildren) {
 
   const canManageSelected = useMemo(() => {
     if (!selectedBusiness) return false
-    if (isPlatformAdmin) return true
     if (!membershipForSelected) return false
-    return ['owner', 'admin', 'editor'].includes(membershipForSelected.role)
-  }, [selectedBusiness, isPlatformAdmin, membershipForSelected])
+    return ['owner', 'editor'].includes(membershipForSelected.role)
+  }, [selectedBusiness, membershipForSelected])
 
   const updateControl = useCallback(async (control: Control, metadata?: Partial<Pick<ControlState, 'updatedAt' | 'updatedBy'>>) => {
     if (!selectedBusinessId || !canManageSelected) return
@@ -316,15 +305,47 @@ export function BusinessProvider({ children }: PropsWithChildren) {
     }
   }, [selectedBusinessId, canManageSelected, useFirebase])
 
+  const leaveBusiness = useCallback(async (businessId: string) => {
+    if (!currentUserId) return
+    setBusinesses(prev => prev.map(business => {
+      if (business.id !== businessId) return business
+      const remainingMembers = (business.members ?? []).filter(member => member.uid !== currentUserId)
+      return {
+        ...business,
+        members: remainingMembers,
+      }
+    }))
+    if (selectedBusinessId === businessId) {
+      setSelectedBusinessId(null)
+    }
+
+    if (!useFirebase || !db) return
+    try {
+      const businessRef = doc(db, 'businesses', businessId)
+      await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(businessRef)
+        if (!snapshot.exists()) {
+          throw new Error('Business not found')
+        }
+        const existing = normalizeBusinessDoc(snapshot.id, snapshot.data())
+        const remainingMembers = (existing.members ?? []).filter(member => member.uid !== currentUserId)
+        transaction.update(businessRef, {
+          members: remainingMembers,
+        })
+      })
+    } catch (err) {
+      console.error('Failed to leave business', err)
+      setError(err as Error)
+    }
+  }, [currentUserId, selectedBusinessId, useFirebase, db])
+
   const value = useMemo<BusinessContextValue>(() => ({
     loading,
     error,
     currentUserId,
-    isPlatformAdmin,
     controlDefinitions,
     businesses,
     memberBusinesses,
-    discoverableBusinesses,
     selectedBusinessId,
     selectedBusiness,
     membershipForSelected,
@@ -335,15 +356,14 @@ export function BusinessProvider({ children }: PropsWithChildren) {
     selectBusiness,
     clearSelectedBusiness,
     updateControl,
+    leaveBusiness,
   }), [
     loading,
     error,
     currentUserId,
-    isPlatformAdmin,
     controlDefinitions,
     businesses,
     memberBusinesses,
-    discoverableBusinesses,
     selectedBusinessId,
     selectedBusiness,
     membershipForSelected,
@@ -354,6 +374,7 @@ export function BusinessProvider({ children }: PropsWithChildren) {
     selectBusiness,
     clearSelectedBusiness,
     updateControl,
+    leaveBusiness,
   ])
 
   return (
@@ -442,16 +463,12 @@ function resolveCurrentUserId(): string | null {
   if (authUid) return authUid
   if (isFirebaseConfigured) return null
   if (typeof window === 'undefined') return DEMO_DEFAULT_UID
-  const stored = window.localStorage.getItem(USER_STORAGE_KEY)
+  const stored = window.localStorage.getItem(STORAGE_DEMO_USER)
   return stored || DEMO_DEFAULT_UID
 }
 
 function hasMembership(business: Business, uid: string): boolean {
   return Boolean(business.members?.some(member => member.uid === uid))
-}
-
-function hasRole(business: Business, uid: string, roles: BusinessMember['role'][]): boolean {
-  return Boolean(business.members?.some(member => member.uid === uid && roles.includes(member.role)))
 }
 
 function normalizeBusinessDoc(id: string, data: DocumentData | undefined): Business {

@@ -1,9 +1,10 @@
-import {Business, BusinessInvite, Certificates} from '../types'
-import React, {useState, KeyboardEvent} from 'react';
-import { db } from '../firebase';
-import {setDoc, doc} from 'firebase/firestore';
-import { nanoid } from 'nanoid';
-
+import { Business, BusinessInvite, Certificates } from '../types'
+import React, { useState, KeyboardEvent } from 'react'
+import { db } from '../firebase'
+import { setDoc, doc } from 'firebase/firestore'
+import { nanoid } from 'nanoid'
+import { useBusinessContext } from '../context/BusinessContext'
+import { getCurrentUserDisplayName } from '../context/AuthRoute'
 
 // Email validation helper
 const isValidEmail = (email: string): boolean => {
@@ -18,6 +19,8 @@ interface SubmitCompanyProps {
 }
 
 export default function SubmitCompany({ business, onSuccess, onError }: SubmitCompanyProps) { 
+    const { currentUserId } = useBusinessContext()
+    const currentUserName = getCurrentUserDisplayName()
     const [companyData, setCompanyData] = useState<Business>({
         ...business,
         id: business.id || nanoid() // Generate unique ID if not provided
@@ -26,10 +29,16 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
     const [selectedCertificates, setSelectedCertificates] = useState<string[]>(companyData.certificates || []);
     const [emailInput, setEmailInput] = useState<string>('');
     // Default role selector for newly added invites
-    const [selectedRole, setSelectedRole] = useState<'owner' | 'admin' | 'editor' | 'viewer'>('viewer');
+    const [selectedRole, setSelectedRole] = useState<'owner' | 'editor' | 'viewer'>('viewer');
     // Keep invites as full objects so we track role per-invite
     const [invites, setInvites] = useState<BusinessInvite[]>(
-        business.invites?.map(inv => ({ email: inv.email, role: inv.role, invitedAt: inv.invitedAt, status: inv.status })) || []
+        business.invites?.map(inv => ({
+            email: inv.email,
+            role: inv.role,
+            invitedAt: inv.invitedAt,
+            status: inv.status,
+            invitedBy: inv.invitedBy,
+        })) || []
     );
     const [emailError, setEmailError] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,6 +83,7 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
             role: selectedRole,
             status: 'pending',
             invitedAt: formattedDate,
+            invitedBy: currentUserId ?? undefined,
         };
         setInvites(prev => [...prev, newInvite]);
         setEmailInput('');
@@ -98,6 +108,13 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
             return;
         }
 
+        if (!currentUserId) {
+            const error = new Error("You must be signed in to create a company");
+            setSubmitError(error.message);
+            onError?.(error);
+            return;
+        }
+
         if (!companyData.name.trim()) {
             const error = new Error("Company name is required");
             setSubmitError(error.message);
@@ -115,7 +132,31 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
                 role: inv.role,
                 status: inv.status || 'pending',
                 invitedAt: inv.invitedAt || formattedDate,
+                invitedBy: inv.invitedBy ?? currentUserId ?? undefined,
             }));
+
+            const ownerMember = currentUserId
+                ? {
+                    uid: currentUserId,
+                    role: 'owner' as const,
+                    displayName: currentUserName ?? 'Workspace owner',
+                }
+                : null
+
+            const existingMembers = Array.isArray(companyData.members) ? companyData.members : []
+            const membersToSave = ownerMember
+                ? (() => {
+                    const already = existingMembers.find(member => member.uid === ownerMember.uid)
+                    if (already) {
+                        return existingMembers.map(member =>
+                            member.uid === ownerMember.uid
+                                ? { ...member, role: 'owner', displayName: member.displayName ?? ownerMember.displayName }
+                                : member
+                        )
+                    }
+                    return [...existingMembers, ownerMember]
+                })()
+                : existingMembers
 
             const businessData = {
                 controlState: [],
@@ -124,7 +165,7 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
                 evidence: [],
                 invites: invitesToSave,
                 certificates: selectedCertificates,
-                members: companyData.members ?? [],
+                members: membersToSave,
                 name: companyData.name,
                 poams: [],
                 updatedAt: formattedDate
@@ -160,7 +201,7 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
         />
         <br />
         <div style={{ marginBottom: '1rem' }}>
-            <p style={{ display: 'block', marginBottom: '0.5rem' }}>Invite Members by Email. Note that you need to give yourself a role if needed</p>
+            <p style={{ display: 'block', marginBottom: '0.5rem' }}>Invite teammates by email. You are automatically listed as the company owner.</p>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
                     type="text"
@@ -178,7 +219,6 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
                 >
                     <option value="viewer">Viewer</option>
                     <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
                     <option value="owner">Owner</option>
                 </select>
                 <button type="button" onClick={addEmail} style={{ padding: '0.45rem 0.75rem' }}>Add</button>
@@ -213,7 +253,6 @@ export default function SubmitCompany({ business, onSuccess, onError }: SubmitCo
                         >
                             <option value="viewer">Viewer</option>
                             <option value="editor">Editor</option>
-                            <option value="admin">Admin</option>
                             <option value="owner">Owner</option>
                         </select>
 

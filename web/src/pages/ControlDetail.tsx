@@ -88,7 +88,7 @@ export default function ControlDetail({
 
         {readOnly && (
           <div style={{ background: 'rgba(148, 163, 184, 0.2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '.9rem', color: 'var(--muted)' }}>
-            You have read-only access to this company. Ask an administrator for editor rights to update control answers.
+            You have read-only access to this company. Ask a workspace owner for editor rights to update control answers.
           </div>
         )}
 

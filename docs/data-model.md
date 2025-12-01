@@ -36,7 +36,7 @@ evidence (top-level or subcollection under controls/{controlId})
 - objectiveIds: array<string> (optional linkage to objectives)
 
 userProfiles (optional for roles)
-- role: enum("admin","member","viewer")
+- role: enum("owner","editor","viewer")
 - displayName, email, photoURL
 
 ## Storage (Firebase Storage)
@@ -46,6 +46,6 @@ Paths:
 
 ## Security (Overview)
 - Auth required for all reads/writes.
-- Only author (or admin) can edit/delete own comments and evidence metadata.
+- Only the author can edit/delete their own comments and evidence metadata.
 - Evidence file write limited to owner path (uid == request.auth.uid).
 - Validate `status` enum and objective structure via rules.

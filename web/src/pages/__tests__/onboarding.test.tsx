@@ -22,10 +22,10 @@ describe('Onboarding — create account and quick start', () => {
     vi.resetAllMocks()
   })
 
-  it('allows a user to sign in and select a company for quick start', async () => {
+  it('allows a user to sign in and land on their default company automatically', async () => {
     // Stub fetch to return sample businesses used by BusinessProvider when firebase is disabled.
     const sampleBusinesses = [
-      { id: 'b1', name: 'Alpha Co', members: [{ uid: 'demo-admin', role: 'owner', displayName: 'Demo Admin' }], controlState: [] },
+      { id: 'b1', name: 'Alpha Co', members: [{ uid: 'demo-owner', role: 'owner', displayName: 'Demo Owner' }], controlState: [] },
       { id: 'b2', name: 'Beta LLC', members: [], controlState: [] },
     ]
     const sampleControls: any[] = [] // minimal controls so mergeControls does not crash
@@ -39,6 +39,8 @@ describe('Onboarding — create account and quick start', () => {
       return Promise.resolve({ ok: true, status: 200, json: async () => ({}) })
     })
 
+    window.localStorage.clear()
+
     render(
       <MemoryRouter initialEntries={["/login"]}>
         <BusinessProvider>
@@ -47,30 +49,15 @@ describe('Onboarding — create account and quick start', () => {
       </MemoryRouter>,
     )
 
-    // Login page should render
-    expect(screen.getByText(/Login Page/i)).toBeInTheDocument()
+    await screen.findByRole('heading', { name: /Chiron/i })
 
-    // Click the Google button (react-google-button renders a button element)
-    const googleButton = screen.getByRole('button')
+    const googleButton = await screen.findByRole('button', { name: /sign in with google/i })
     await act(async () => userEvent.click(googleButton))
 
-    // After sign-in the app should attempt to navigate to the dashboard — Home contains 'Overview'
-    await waitFor(() => expect(screen.getByText(/Overview/i)).toBeInTheDocument())
-
-    // BusinessSelector should show (Home is wrapped by AuthRoute which shows BusinessSelector when no selected company)
-    // The selector renders a dialog with text 'Select a company'
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/Select a company/i)).toBeInTheDocument()
-
-    // The list of member companies is loaded from /data/businesses.json by BusinessProvider when firebase is disabled.
-    // We can't fetch in tests, but BusinessProvider will load the local JSON. Wait for one of the known companies from sample data.
-    // Use a loose wait to find any button that looks like a company card.
-  const companyButton = await screen.findByRole('button', { name: /Alpha Co/i })
-    // Click to select company
-    await act(async () => userEvent.click(companyButton))
-
-    // After selecting, the dialog should close and Home should remain visible
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(screen.getByText(/Overview/i)).toBeInTheDocument()
+    // After sign-in the app should navigate to the dashboard and auto-select the first company
+    await waitFor(() => {
+      expect(screen.getByText(/Overview/i)).toBeInTheDocument()
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 })
