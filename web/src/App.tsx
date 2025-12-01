@@ -152,7 +152,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setShowBusinessPicker(true)}
-          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' }}
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer', color: 'var(--text)', }}
         >
           {selectedBusiness.name}
         </button>
@@ -161,7 +161,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => { if (!showBusinessPicker) setAccountMenuOpen(true) } }
-          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' } }
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer', color: 'var(--text)',} }
         >
           Account
         </button>
@@ -205,7 +205,7 @@ export default function App() {
             setAccountMenuOpen(false)
             logout()
           }}
-          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' }}
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer', color: 'var(--text)', }}
         >
           Logout
         </button>
