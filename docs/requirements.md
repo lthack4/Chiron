@@ -31,7 +31,7 @@
 
 ## Comments
 - Control-level comments with author and timestamp
-- Basic edit/delete by author; admins can moderate
+- Basic edit/delete by author
 
 ## Non-Functional
 - Team-collaboration friendly UI

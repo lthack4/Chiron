@@ -1,9 +1,22 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import type { Control, Objective, Status } from '../types'
+import type { Control, Objective, Status, Business } from '../types'
 import { controlContribution, controlWeight } from '../scoring'
+import { useBusinessContext } from '../context/BusinessContext'
+import { EvidenceUploader, EvidenceList } from '../components/EvidenceUpload'
 
-export default function ControlDetail({ allControls, onUpdateLocal }: { allControls: Control[]; onUpdateLocal: (controls: Control[]) => void }) {
+
+
+export default function ControlDetail({
+  allControls,
+  onUpdateControl,
+  readOnly = false,
+}: {
+  allControls: Control[]
+  onUpdateControl: (control: Control) => void
+  readOnly?: boolean
+}) {
+  const { selectedBusinessId } = useBusinessContext()
   const { id: raw } = useParams()
   const id = useMemo(() => (raw ? decodeURIComponent(raw) : ''), [raw])
   const navigate = useNavigate()
@@ -34,25 +47,25 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
   }
 
   function setStatus(status: Status | undefined) {
-    if (!local) return
+    if (!local || readOnly) return
     const next: Control = { ...local, status }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   function toggleObjective(objective: Objective) {
-    if (!local) return
+    if (!local || readOnly) return
     const nextObjectives = (local.objectives ?? []).map(obj => (obj.id === objective.id ? { ...obj, done: !obj.done } : obj))
     const next: Control = { ...local, objectives: nextObjectives }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   function updateComment(value: string) {
-    if (!local) return
+    if (!local || readOnly) return
     const next: Control = { ...local, comment: value }
     setLocal(next)
-    onUpdateLocal(allControls.map(control => (control.id === next.id ? next : control)))
+    void onUpdateControl(next)
   }
 
   return (
@@ -73,10 +86,20 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
           </div>
         </header>
 
+        {readOnly && (
+          <div style={{ background: 'rgba(148, 163, 184, 0.2)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '.9rem', color: 'var(--muted)' }}>
+            You have read-only access to this company. Ask a workspace owner for editor rights to update control answers.
+          </div>
+        )}
+
         <ScoreLine allControls={allControls} control={local} />
 
         <Section title="Status">
-          <select value={local.status ?? ''} onChange={(event) => setStatus((event.target.value || undefined) as Status | undefined)}>
+          <select
+            value={local.status ?? ''}
+            onChange={(event) => setStatus((event.target.value || undefined) as Status | undefined)}
+            disabled={readOnly}
+          >
             <option value="">unanswered</option>
             <option value="not_implemented">not_implemented</option>
             <option value="partially_implemented">partially_implemented</option>
@@ -94,7 +117,7 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
               local.objectives.map(objective => (
                 <li key={objective.id} style={{ marginBottom: 6 }}>
                   <label>
-                    <input type="checkbox" checked={objective.done} onChange={() => toggleObjective(objective)} /> {objective.text}
+                    <input type="checkbox" checked={objective.done} onChange={() => toggleObjective(objective)} disabled={readOnly} /> {objective.text}
                   </label>
                 </li>
               ))
@@ -104,10 +127,14 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
           </ul>
         </Section>
 
-        <Section title="Evidence">
-          <p>Stub: integrate Firebase Storage upload next.</p>
-          <input type="file" disabled title="Configure Firebase to enable uploads" />
-        </Section>
+  <Section title="Evidence">
+    <EvidenceUploader
+      businessId={selectedBusinessId}
+      controlId={local.id}
+      disabled={readOnly}
+    />
+    <EvidenceList controlId={local.id} />
+  </Section>
 
         <Section title="Comments / Answer">
           <textarea
@@ -116,6 +143,8 @@ export default function ControlDetail({ allControls, onUpdateLocal }: { allContr
             onChange={(event) => updateComment(event.target.value)}
             rows={6}
             style={{ width: '100%' }}
+            disabled={readOnly}
+
           />
         </Section>
       </div>
@@ -168,3 +197,5 @@ function ScoreLine({ allControls, control }: { allControls: Control[]; control: 
     </div>
   )
 }
+
+

@@ -10,7 +10,10 @@ import Policies from './pages/Policies'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
 import Login from './pages/Login'
-import AuthRoute, { logout } from './context/AuthRoute'
+import ResetPassword from './pages/ResetPassword' 
+import AuthRoute, { AUTH_CHANGE_EVENT, AUTH_COMPLETE_KEY, getCurrentUserID, logout } from './context/AuthRoute'
+import { useBusinessContext } from './context/BusinessContext'
+import BusinessSelector from './components/BusinessSelector'
 
 
 function sortControls(arr: Control[]): Control[] {
@@ -53,41 +56,108 @@ type FilterStatus = Status | 'unanswered' | null
 
 export default function App() {
   const [searchParams] = useSearchParams()
-  const [controls, setControls] = useState<Control[]>([])
+  const [hasLoginSession, setHasLoginSession] = useState(() => readAuthCompletionFlag())
+  const {
+    loading,
+    error,
+    currentUserId,
+    memberBusinesses,
+    controls,
+    selectedBusiness,
+    selectBusiness,
+    clearSelectedBusiness,
+    updateControl,
+    canCreateBusiness,
+    canManageSelected,
+    pendingInvites,
+    leaveBusiness,
+  } = useBusinessContext()
+
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [showBusinessPicker, setShowBusinessPicker] = useState(false)
+  const [businessMenuOpen, setBusinessMenuOpen] = useState(false)
+  const shouldShowLogin = !hasLoginSession
   const navigate = useNavigate()
   const location = useLocation()
+  const requiresWorkspace = !shouldShowLogin && !loading && memberBusinesses.length === 0
 
-  useEffect(() => {
-    const load = async () => {
-      const res = await fetch('/data/cmmc-l2.controls.json')
-      const data: Control[] = await res.json()
-      setControls(sortControls(data))
-    }
-    load().catch(err => console.error('Failed to load local CMMC controls:', err))
-  }, [])
+  const sortedControls = useMemo(() => sortControls(controls), [controls])
+
+  const handleControlUpdate = (control: Control) => {
+    const userId = getCurrentUserID() ?? currentUserId ?? 'local-user'
+    const timestamp = new Date().toISOString()
+    updateControl({ ...control, updatedBy: userId, updatedAt: timestamp }, { updatedBy: userId, updatedAt: timestamp })
+  }
 
   const statusFilter: FilterStatus = (searchParams.get('status') as FilterStatus) || null
   const filtered = useMemo(() => {
-    if (!statusFilter) return controls
-    if (statusFilter === 'unanswered') return controls.filter(c => !c.status)
-    return controls.filter(c => c.status === statusFilter)
-  }, [controls, statusFilter])
+    if (!statusFilter) return sortedControls
+    if (statusFilter === 'unanswered') return sortedControls.filter(c => !c.status)
+    return sortedControls.filter(c => c.status === statusFilter)
+  }, [sortedControls, statusFilter])
+
 
   useEffect(() => {
     setAccountMenuOpen(false)
+    setBusinessMenuOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handler = () => setHasLoginSession(readAuthCompletionFlag())
+    window.addEventListener('storage', handler)
+    window.addEventListener(AUTH_CHANGE_EVENT, handler)
+    return () => {
+      window.removeEventListener('storage', handler)
+      window.removeEventListener(AUTH_CHANGE_EVENT, handler)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (shouldShowLogin && location.pathname !== '/login') {
+      navigate('/login', { replace: true })
+    }
+  }, [shouldShowLogin, location.pathname, navigate])
+
+  useEffect(() => {
+    if (!shouldShowLogin && location.pathname === '/login') {
+      navigate('/', { replace: true })
+    }
+  }, [shouldShowLogin, location.pathname, navigate])
+
+  useEffect(() => {
+    if (location.pathname === '/login') {
+      setShowBusinessPicker(false)
+      return
+    }
+
+    if (!loading && requiresWorkspace) {
+      setShowBusinessPicker(false) // ensure manual flag cleared
+    }
+  }, [loading, location.pathname, requiresWorkspace])
 
   const routes = (
     <Routes>
-      <Route path="/" element={<AuthRoute><Home controls={controls} /></AuthRoute>} />
+      <Route path="/" element={<AuthRoute><Home controls={sortedControls} /></AuthRoute>} />
       <Route path="/controls" element={<AuthRoute><ControlsList controls={filtered} /></AuthRoute>} />
-      <Route path="/controls/:id" element={<AuthRoute><ControlDetail allControls={controls} onUpdateLocal={setControls} /></AuthRoute>} />
-      <Route path="/spr" element={<AuthRoute><SprScore controls={controls} /></AuthRoute>} />
+      <Route
+        path="/controls/:id"
+        element={(
+          <AuthRoute>
+            <ControlDetail
+              allControls={sortedControls}
+              onUpdateControl={handleControlUpdate}
+              readOnly={!canManageSelected}
+            />
+          </AuthRoute>
+        )}
+      />
+      <Route path="/spr" element={<AuthRoute><SprScore controls={sortedControls} /></AuthRoute>} />
       <Route path="/poams" element={<AuthRoute><Poams /></AuthRoute>} />
       <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
       <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   )
 
@@ -100,6 +170,25 @@ export default function App() {
           selected={statusFilter}
           onSelect={(value) => navigate(value ? `/controls?status=${value}` : '/controls')}
         />
+
+      )}
+      {!isLoginRoute && (
+        <button
+          type="button"
+          onClick={() => setBusinessMenuOpen(prev => !prev)}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            padding: '6px 12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          {selectedBusiness ? selectedBusiness.name : 'Choose a company'}
+          <span style={{ fontSize: '.8rem' }}>▾</span>
+        </button>
       )}
       {!isLoginRoute && (
         <button
@@ -127,12 +216,119 @@ export default function App() {
         <button
           type="button"
           onClick={() => {
+
+            clearSelectedBusiness()
+            setAccountMenuOpen(false)
+            setShowBusinessPicker(true)
+          }}
+          disabled={!selectedBusiness}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            padding: '6px 12px',
+            cursor: selectedBusiness ? 'pointer' : 'not-allowed',
+            opacity: selectedBusiness ? 1 : 0.6,
+          }}
+        >
+          Switch company
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             setAccountMenuOpen(false)
             logout()
           }}
           style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' }}
         >
           Logout
+        </button>
+      </aside>
+    </div>
+  ) : null
+
+  const businessMenu = businessMenuOpen && !isLoginRoute ? (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'transparent' }}
+      onClick={() => setBusinessMenuOpen(false)}
+    >
+      <aside
+        onClick={(event) => event.stopPropagation()}
+        style={{ position: 'absolute', top: 72, right: 148, width: 260, background: '#fff', boxShadow: '0 8px 26px rgba(15,23,42,0.15)', padding: 16, display: 'grid', gap: 12, borderRadius: 12 }}
+      >
+        <strong style={{ fontSize: '.95rem' }}>Company actions</strong>
+        {memberBusinesses.length > 0 ? (
+          <div style={{ display: 'grid', gap: 6 }}>
+            {memberBusinesses.map(business => (
+              <button
+                key={business.id}
+                type="button"
+                onClick={() => {
+                  selectBusiness(business.id)
+                  setBusinessMenuOpen(false)
+                }}
+                style={{
+                  textAlign: 'left',
+                  border: '1px solid var(--border)',
+                  padding: '6px 8px',
+                  borderRadius: 6,
+                  background: business.id === selectedBusiness?.id ? 'rgba(37,99,235,0.08)' : 'transparent',
+                  cursor: 'pointer',
+                }}
+              >
+                {business.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: '.85rem', color: '#64748b', margin: 0 }}>You are not part of any companies yet.</p>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setShowBusinessPicker(true)
+            setBusinessMenuOpen(false)
+          }}
+          style={{ border: '1px solid var(--border)', padding: '6px 10px', borderRadius: 6, background: 'transparent', cursor: 'pointer' }}
+        >
+          {memberBusinesses.length ? 'Join another company' : 'Join a company'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowBusinessPicker(true)
+            setBusinessMenuOpen(false)
+          }}
+          disabled={!canCreateBusiness}
+          style={{
+            border: '1px solid var(--border)',
+            padding: '6px 10px',
+            borderRadius: 6,
+            background: canCreateBusiness ? '#2563eb' : 'rgba(148,163,184,0.2)',
+            color: canCreateBusiness ? '#fff' : 'var(--muted)',
+            cursor: canCreateBusiness ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Create a company
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (selectedBusiness) {
+              leaveBusiness(selectedBusiness.id)
+            }
+            setBusinessMenuOpen(false)
+          }}
+          disabled={!selectedBusiness}
+          style={{
+            border: '1px solid var(--border)',
+            padding: '6px 10px',
+            borderRadius: 6,
+            background: 'transparent',
+            color: selectedBusiness ? '#b91c1c' : 'var(--muted)',
+            cursor: selectedBusiness ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Leave current company
         </button>
       </aside>
     </div>
@@ -147,9 +343,33 @@ export default function App() {
       <SidebarShell title={resolveTitle(location.pathname)} actions={shellActions}>
         {routes}
       </SidebarShell>
+      {businessMenu}
       {accountMenu}
+      <BusinessSelector
+        open={!shouldShowLogin && (requiresWorkspace || showBusinessPicker)}
+        memberBusinesses={memberBusinesses}
+        loading={loading}
+        error={error}
+        selectedId={selectedBusiness?.id ?? null}
+        canCreateBusiness={canCreateBusiness}
+        pendingInvites={pendingInvites}
+        onSelect={(businessId) => {
+          selectBusiness(businessId)
+          setShowBusinessPicker(false)
+        }}
+        onClose={() => {
+          if (requiresWorkspace || !selectedBusiness) return
+          setShowBusinessPicker(false)
+        }}
+      />
+
     </>
   )
+}
+
+function readAuthCompletionFlag(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem(AUTH_COMPLETE_KEY) === 'true'
 }
 
 function StatusFilters({ selected, onSelect }: { selected: FilterStatus; onSelect: (value: FilterStatus) => void }) {

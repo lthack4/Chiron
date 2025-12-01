@@ -24,6 +24,76 @@ This repo includes:
    - `firebase init` (use existing `firebase.json`, select Hosting, Firestore, Storage)
    - `pnpm build` then `firebase deploy`
 
+
+### Creating a Release
+
+#### Production Release
+1. Ensure your changes are merged to the `main` branch
+2. Go to GitHub Actions → "Release" workflow
+3. Click "Run workflow"
+4. Configure the release:
+   - Branch: `main`
+   - Version bump type:
+     - `patch` for bug fixes and non-functional changes
+     - `minor` for new features (backwards compatible)
+     - `major` for breaking changes
+   - Leave pre-release identifier empty
+5. Click "Run workflow"
+
+#### Development Release
+1. From your development branch (e.g., `feature/new-feature`)
+2. Go to GitHub Actions → "Release" workflow
+3. Click "Run workflow"
+4. Configure the release:
+   - Branch: your branch name (e.g., `feature/new-feature`)
+   - Version bump type: usually `patch` or `minor`
+   - Pre-release identifier: `dev`, `alpha`, or `beta`
+5. Click "Run workflow"
+
+Examples:
+- Dev branch patch: v1.2.3 → v1.2.4-dev.0
+- Dev branch minor: v1.2.3 → v1.3.0-dev.0
+- Alpha release: Use `alpha` as pre-release identifier
+- Beta release: Use `beta` as pre-release identifier
+
+The workflow will:
+1. Run tests and build the project
+2. Bump version in `web/package.json`
+3. Create a git tag (e.g., v1.2.3)
+4. Create a GitHub Release
+
+### Branch Protection Notes
+
+If `main` branch has protection rules that prevent GitHub Actions from pushing:
+1. Go to repository Settings → Branches → Branch protection rules
+2. Edit the rule for `main`
+3. Under "Restrict who can push", allow the GitHub Actions bot
+   OR
+4. Add a Personal Access Token (PAT) with repo access to repository secrets as RELEASE_TOKEN
+5. Contact repository admin if you need help with permissions
+
+### Manually bumping the web version locally
+
+If you want to update the `web` package version locally (for testing or to create a local release commit/tag), there are helper npm scripts in the `web` folder.
+
+From the repository root run:
+
+```powershell
+cd web
+npm run version:patch   # bumps patch (x.y.z -> x.y.z+1), commits and tags
+npm run version:minor   # bumps minor (x.y.z -> x.(y+1).0)
+npm run version:major   # bumps major (x.y.z -> (x+1).0.0)
+```
+
+These scripts call `npm version <level>`, which will update `web/package.json`, create a Git commit and a Git tag (e.g., `v1.2.3`) if your working tree is clean and Git is available. If you don't want npm to create the commit/tag automatically, run:
+
+```powershell
+cd web
+npm version patch --no-git-tag-version
+```
+
+Then commit and push the changes yourself, or rely on the release workflow to commit and push when running on CI.
+
 ## Sprints & Deliverablesi
 - Sprint 1 (Weeks 1–4, Aug 25–Sep 21, due Sep 21)
   - Repo, app skeleton, and sample data complete
