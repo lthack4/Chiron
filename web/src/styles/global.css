@@ -30,16 +30,17 @@ img { max-width: 100%; display: block; }
 }
 
 /* Light mode (optional) */
-@media (prefers-color-scheme: light){
-  :root{
-    --bg: #f6f7fb;
-    --panel: #ffffff;
-    --panel-elev: #ffffff;
-    --text: #0e1116;
-    --muted: #4b5563;
-    --border: #e7e9ee;
-    --shadow: 0 8px 22px rgba(16,24,40,.08);
-  }
+:root[data-theme="light"] {
+  --bg: #f6f7fb;
+  --panel: #ffffff;
+  --panel-elev: #ffffff;
+  --text: #0e1116;
+  --muted: #4b5563;
+  --primary: #2563eb;
+  --primary-600: #1d4ed8;
+  --ring: #93c5fd;
+  --border: #e5e7eb;
+  --shadow: 0 8px 22px rgba(16,24,40,.08);
 }
 
 /* ---------- Base ---------- */
