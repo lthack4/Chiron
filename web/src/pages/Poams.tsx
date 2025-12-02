@@ -52,7 +52,7 @@ export default function Poams() {
                 <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500 }}>{poam.title}</td>
                 <td style={{ padding: '0.75rem 0.5rem', whiteSpace: 'nowrap' }}>{poam.controlId ?? '—'}</td>
                 <td style={{ padding: '0.75rem 0.5rem' }}>{poam.owner ?? 'Unassigned'}</td>
-                <td style={{ padding: '0.75rem 0.5rem', textTransform: 'capitalize' }}>{poam.status.replace(/_/g, ' ')}</td>
+                <td style={{ padding: '0.75rem 0.5rem', textTransform: 'capitalize' }}>{poam.status ? poam.status.replace(/_/g, ' ') : '—'}</td>
                 <td style={{ padding: '0.75rem 0.5rem', textTransform: 'capitalize' }}>{poam.riskLevel ?? '—'}</td>
                 <td style={{ padding: '0.75rem 0.5rem' }}>{poam.dueDate ?? '—'}</td>
               </tr>
