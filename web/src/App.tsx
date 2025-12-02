@@ -164,7 +164,10 @@ export default function App() {
   const isLoginRoute = location.pathname === '/login'
 
   const shellActions = (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }} 
+      onClick={() => {
+        if (accountMenuOpen) setAccountMenuOpen(false)}
+      }>
       {location.pathname === '/controls' && (
         <StatusFilters
           selected={statusFilter}
@@ -184,6 +187,7 @@ export default function App() {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
+            color: 'var(--text)',
           }}
         >
           {selectedBusiness ? selectedBusiness.name : 'Choose a company'}
@@ -193,8 +197,8 @@ export default function App() {
       {!isLoginRoute && (
         <button
           type="button"
-          onClick={() => setAccountMenuOpen(true)}
-          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' }}
+          onClick={() => { if (!showBusinessPicker) setAccountMenuOpen(true) } }
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer', color: 'var(--text)',} }
         >
           Account
         </button>
@@ -204,12 +208,12 @@ export default function App() {
 
   const accountMenu = accountMenuOpen && !isLoginRoute ? (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }}
+      style={{ position: 'fixed', inset: 1, background: 'rgba(0,0,0,0.4)'}}
       onClick={() => setAccountMenuOpen(false)}
     >
       <aside
         onClick={(event) => event.stopPropagation()}
-        style={{ position: 'absolute', top: 72, right: 24, width: 220, background: '#fff', boxShadow: '-2px 0 8px rgba(0,0,0,0.15)', padding: 16, display: 'grid', gap: 8 }}
+        style={{ position: 'fixed', top: 72, right: 24, width: 220, background: '#fff', boxShadow: '-2px 0 8px rgba(0,0,0,0.15)', padding: 16, display: 'grid', gap: 8 }}
       >
         <strong>Account</strong>
         <Link to="/settings" onClick={() => setAccountMenuOpen(false)}>Settings</Link>
@@ -238,7 +242,7 @@ export default function App() {
             setAccountMenuOpen(false)
             logout()
           }}
-          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer' }}
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 12px', cursor: 'pointer', color: 'var(--text)', }}
         >
           Logout
         </button>
