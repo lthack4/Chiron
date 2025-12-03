@@ -7,6 +7,7 @@ import ControlDetail from './pages/ControlDetail'
 import Home from './pages/Home'
 import Poams from './pages/Poams'
 import Policies from './pages/Policies'
+import EvidenceLibrary  from './pages/EvidenceLibrary'
 import Settings from './pages/Settings'
 import SprScore from './pages/SprScore'
 import Login from './pages/Login'
@@ -155,6 +156,7 @@ export default function App() {
       <Route path="/spr" element={<AuthRoute><SprScore controls={sortedControls} /></AuthRoute>} />
       <Route path="/poams" element={<AuthRoute><Poams /></AuthRoute>} />
       <Route path="/policies" element={<AuthRoute><Policies /></AuthRoute>} />
+      <Route path="/evidence" element={<AuthRoute><EvidenceLibrary /></AuthRoute>} />
       <Route path="/settings" element={<AuthRoute><Settings /></AuthRoute>} />
       <Route path="/login" element={<Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
